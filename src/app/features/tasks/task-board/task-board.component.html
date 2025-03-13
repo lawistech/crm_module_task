@@ -1,0 +1,11 @@
+<!-- src/app/features/tasks/task-board/task-board.component.html -->
+<div class="container">
+    <div *ngIf="isLoading" class="loading-spinner">
+      Loading...
+    </div>
+    
+    <div *ngIf="!isLoading">
+      <h1>Task Board</h1>
+      <!-- Task board content will go here -->
+    </div>
+  </div>

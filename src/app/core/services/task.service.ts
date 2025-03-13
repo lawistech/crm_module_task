@@ -115,7 +115,8 @@ export class TaskService {
       .order('due_date', { ascending: true });
   }
 
-  async updateTaskStatus(id: string, status: TaskStatus) {
+  // src/app/core/services/task.service.ts
+async updateTaskStatus(id: string, status: TaskStatus) {
     const updates: Partial<Task> = {
       status,
       updated_at: new Date().toISOString()
@@ -125,8 +126,8 @@ export class TaskService {
     if (status === TaskStatus.COMPLETED) {
       updates.completion_date = new Date().toISOString();
     } else {
-      // If changing from completed to another status, remove completion date
-      updates.completion_date = null;
+      // Fix: Use undefined instead of null
+      updates.completion_date = undefined;
     }
     
     return this.supabaseClient
