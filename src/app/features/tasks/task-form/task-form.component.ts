@@ -2,14 +2,15 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Task, TaskStatus, TaskPriority } from '../../../core/models/task.model';
+import { Contact } from '../../../core/models/contact.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { TaskService } from '../../../core/services/task.service';
+import { SupabaseService } from '../../../core/services/supabase.service';
 import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-task-form',
-  templateUrl: './task-form.component.html',
-  styleUrls: ['./task-form.component.scss']
+  templateUrl: './task-form.component.html'
 })
 export class TaskFormComponent implements OnInit {
   @Input() isOpen = false;
@@ -20,6 +21,7 @@ export class TaskFormComponent implements OnInit {
 
   taskForm!: FormGroup;
   isLoading = false;
+  contacts: Contact[] = [];
   
   // For template access
   TaskStatus = TaskStatus;
@@ -29,11 +31,27 @@ export class TaskFormComponent implements OnInit {
     private formBuilder: FormBuilder,
     private authService: AuthService,
     private taskService: TaskService,
+    private supabaseService: SupabaseService,
     private notificationService: NotificationService
   ) {}
 
   ngOnInit(): void {
     this.initForm();
+    this.loadContacts();
+  }
+
+  async loadContacts(): Promise<void> {
+    try {
+      const { data, error } = await this.supabaseService.getContacts();
+      
+      if (error) {
+        throw error;
+      }
+      
+      this.contacts = data || [];
+    } catch (error: any) {
+      this.notificationService.error('Failed to load contacts: ' + error.message);
+    }
   }
 
   initForm(): void {
@@ -47,12 +65,15 @@ export class TaskFormComponent implements OnInit {
     });
 
     if (this.isEditing && this.task) {
+      // Format due date for datetime-local input
+      const dueDateFormatted = this.task.due_date ? this.formatDateForInput(this.task.due_date) : '';
+      
       this.taskForm.patchValue({
         title: this.task.title,
         description: this.task.description || '',
         status: this.task.status,
         priority: this.task.priority,
-        due_date: this.task.due_date ? this.formatDateForInput(this.task.due_date) : '',
+        due_date: dueDateFormatted,
         related_to_contact: this.task.related_to_contact || ''
       });
     }
@@ -60,6 +81,9 @@ export class TaskFormComponent implements OnInit {
 
   formatDateForInput(dateStr: string): string {
     const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      return '';
+    }
     return date.toISOString().substring(0, 16); // Format for datetime-local input: YYYY-MM-DDThh:mm
   }
 
@@ -90,7 +114,7 @@ export class TaskFormComponent implements OnInit {
       if (!this.isEditing) {
         // Add required fields for new task
         formValues.created_by = currentUser.id;
-        formValues.assigned_to = currentUser.id;
+        formValues.assigned_to = currentUser.id; // Default to current user
       }
 
       let result;
