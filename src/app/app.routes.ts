@@ -44,6 +44,16 @@ export const routes: Routes = [
     loadChildren: () => import('./features/settings/settings.module').then(m => m.SettingsModule)
   },
   {
+    path: 'tasks',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./features/tasks/tasks.module').then(m => m.TasksModule)
+  },
+  {
+    path: 'task-board',
+    canActivate: [AuthGuard],
+    redirectTo: 'tasks/board'
+  },
+  {
     path: '**',
     redirectTo: 'dashboard'
   }
