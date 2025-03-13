@@ -12,7 +12,7 @@ import { TaskFormComponent } from './task-form/task-form.component';
 const routes: Routes = [
   { path: '', redirectTo: 'my-tasks', pathMatch: 'full' },
   { path: 'my-tasks', component: MyTasksComponent },
-  { path: 'board', component: TaskBoardComponent }
+  { path: 'task-board', component: TaskBoardComponent }
 ];
 
 @NgModule({

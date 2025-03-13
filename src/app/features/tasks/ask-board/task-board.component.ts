@@ -8,7 +8,7 @@ import { format, isBefore, isToday } from 'date-fns';
 
 @Component({
   selector: 'app-task-board',
-  templateUrl: './task-board.component.html'
+  templateUrl: './task-board.component.html',
 })
 export class TaskBoardComponent implements OnInit {
   tasks: Task[] = [];
@@ -233,7 +233,7 @@ export class TaskBoardComponent implements OnInit {
     dropZone.classList.remove('bg-stone-100');
   }
 
-  async onDrop(event: DragEvent, targetStatus: TaskStatus): void {
+  async onDrop(event: DragEvent, targetStatus: TaskStatus): Promise<void> {
     event.preventDefault();
     
     // Remove visual feedback
