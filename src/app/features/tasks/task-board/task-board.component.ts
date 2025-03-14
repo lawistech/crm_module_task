@@ -4,7 +4,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { TaskService } from '../../../core/services/task.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Task, TaskStatus, TaskPriority } from '../../../core/models/task.model';
-import { format, isBefore, isToday } from 'date-fns';
+import { format, isBefore, isToday, formatDistance } from 'date-fns';
 
 @Component({
   selector: 'app-task-board',
@@ -27,6 +27,9 @@ export class TaskBoardComponent implements OnInit {
   // For easy access in template
   TaskStatus = TaskStatus;
   TaskPriority = TaskPriority;
+
+  // Track dragged task
+  private draggedTask: Task | null = null;
 
   constructor(
     private taskService: TaskService,
@@ -123,7 +126,12 @@ export class TaskBoardComponent implements OnInit {
     }
   }
 
-  async deleteTask(taskId: string): Promise<void> {
+  async deleteTask(taskId: string, event?: Event): Promise<void> {
+    // Prevent event propagation if event is provided
+    if (event) {
+      event.stopPropagation();
+    }
+    
     if (!confirm('Are you sure you want to delete this task?')) {
       return;
     }
@@ -156,6 +164,15 @@ export class TaskBoardComponent implements OnInit {
     }
   }
 
+  formatCompletionDate(dateStr: string): string {
+    if (!dateStr) return '';
+    
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    
+    return formatDistance(date, new Date(), { addSuffix: true });
+  }
+
   getPriorityClass(priority: TaskPriority): string {
     switch (priority) {
       case TaskPriority.URGENT:
@@ -169,5 +186,42 @@ export class TaskBoardComponent implements OnInit {
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  }
+
+  // Drag and drop functionality
+  onDragStart(event: DragEvent, task: Task): void {
+    this.draggedTask = task;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', task.id);
+    }
+  }
+
+  onDragOver(event: DragEvent, status: TaskStatus): void {
+    event.preventDefault();
+    if (event.currentTarget instanceof HTMLElement) {
+      event.currentTarget.classList.add('bg-stone-100');
+    }
+  }
+
+  onDragLeave(event: DragEvent): void {
+    if (event.currentTarget instanceof HTMLElement) {
+      event.currentTarget.classList.remove('bg-stone-100');
+    }
+  }
+
+  async onDrop(event: DragEvent, status: TaskStatus): Promise<void> {
+    event.preventDefault();
+    if (event.currentTarget instanceof HTMLElement) {
+      event.currentTarget.classList.remove('bg-stone-100');
+    }
+    
+    if (!this.draggedTask) return;
+    
+    if (this.draggedTask.status !== status) {
+      await this.updateTaskStatus(this.draggedTask.id, status);
+    }
+    
+    this.draggedTask = null;
   }
 }
