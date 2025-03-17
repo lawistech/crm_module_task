@@ -61,6 +61,11 @@ export class TaskFormComponent implements OnInit {
     }
   }
   
+  // Getter for easy access to form fields
+  get f() { 
+    return this.taskForm.controls; 
+  }
+  
   private initForm(): void {
     this.taskForm = this.fb.group({
       title: ['', Validators.required],
@@ -347,3 +352,4 @@ export class TaskFormComponent implements OnInit {
   cancel(): void {
     this.closeForm.emit();
   }
+}
