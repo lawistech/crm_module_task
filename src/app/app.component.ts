@@ -1,10 +1,10 @@
 // src/app/app.component.ts
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './core/services/auth.service';
-import { ReminderService } from './core/services/reminder.service';
-import { NotificationDisplayComponent } from './shared/notification-display/notification-display.component';
+import { TaskBoardComponent } from './features/tasks/task-board/task-board.component';
+import { RouterModule } from '@angular/router';
 
 
 @Component({
@@ -12,7 +12,7 @@ import { NotificationDisplayComponent } from './shared/notification-display/noti
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   standalone: true,
-  imports: [CommonModule, RouterModule, NotificationDisplayComponent]
+  imports: [CommonModule, TaskBoardComponent, RouterModule]
 })
 export class AppComponent implements OnInit {
   showSidebar = true;
@@ -20,7 +20,6 @@ export class AppComponent implements OnInit {
   constructor(
     public authService: AuthService,
     private router: Router,
-    private reminderService: ReminderService
   ) {
     // Hide sidebar on login/register pages
     this.router.events.subscribe(() => {
@@ -30,8 +29,6 @@ export class AppComponent implements OnInit {
   }
   
   ngOnInit(): void {
-    // Initialize call reminders when app starts
-    this.reminderService.checkUpcomingCalls();
   }
   
   // Add this getter method

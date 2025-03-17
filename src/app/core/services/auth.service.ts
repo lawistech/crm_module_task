@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { SupabaseService } from './supabase.service';
-import { User } from '@supabase/supabase-js';
+import { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 
 @Injectable({
   providedIn: 'root'
@@ -89,9 +89,19 @@ export class AuthService {
         message: 'Registration successful! Please check your email for verification.'
       };
     } catch (error: any) {
+      let message = 'Failed to sign up';
+      if (error.message.includes('duplicate key value violates unique constraint')) {
+        message = 'Email address already exists';
+      } else if (error.message.includes('invalid email address')) {
+        message = 'Invalid email address';
+      } else if (error.message.includes('Password should be at least 6 characters')) {
+        message = 'Password should be at least 6 characters';
+      } else {
+        message = error.message || 'Failed to sign up';
+      }
       return { 
         success: false, 
-        message: error.message || 'Failed to sign up'
+        message: message
       };
     }
   }
