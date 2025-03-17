@@ -1,74 +1,142 @@
 <!-- src/app/features/tasks/task-form/task-form.component.html -->
-<form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="space-y-5">
-  <!-- Two columns for main fields on larger screens -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-    <!-- Left Column -->
-    <div class="space-y-5">
+<div class="bg-white rounded-lg shadow-lg p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h2 class="text-xl font-serif font-bold text-stone-800">
+      {{ task ? 'Edit Task' : 'Create New Task' }}
+    </h2>
+    <button (click)="cancel()" class="text-stone-500 hover:text-stone-700">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="space-y-6">
+    <!-- Progress steps for form completion -->
+    <div class="flex mb-6 justify-between relative">
+      <div class="w-full absolute top-1/2 h-0.5 bg-stone-200 -translate-y-1/2"></div>
+      <div *ngFor="let step of formSteps; let i = index" 
+           [ngClass]="{'bg-stone-800 text-white': currentStep >= i, 'bg-stone-100 text-stone-500': currentStep < i}"
+           class="z-10 flex items-center justify-center w-8 h-8 rounded-full transition-colors duration-200">
+        {{ i + 1 }}
+      </div>
+    </div>
+
+    <!-- Step 1: Basic Information -->
+    <div *ngIf="currentStep === 0" class="space-y-5 transition-opacity duration-300">
       <!-- Title -->
       <div>
-        <label for="title" class="block text-sm font-medium text-stone-700 mb-1">Title *</label>
+        <label for="title" class="block text-sm font-medium text-stone-700 mb-1">Task Title <span class="text-rose-600">*</span></label>
         <input 
           type="text" 
           id="title" 
           formControlName="title"
           class="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent"
-          placeholder="Task title"
+          placeholder="Enter a descriptive title"
         >
         <div *ngIf="f['title'].invalid && f['title'].touched" class="text-rose-600 text-sm mt-1">
           Title is required
         </div>
       </div>
       
-      <!-- Status & Priority -->
+      <!-- Description with rich text -->
+      <div>
+        <label for="description" class="block text-sm font-medium text-stone-700 mb-1">Description</label>
+        <div class="bg-stone-100 border border-stone-300 rounded-md overflow-hidden">
+          <div class="flex bg-stone-200 px-2 py-1 border-b border-stone-300">
+            <button type="button" class="p-1 text-stone-600 hover:text-stone-800">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4V5h12v10z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <button type="button" class="p-1 text-stone-600 hover:text-stone-800 ml-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+              </svg>
+            </button>
+          </div>
+          <textarea 
+            id="description" 
+            formControlName="description"
+            rows="4"
+            class="w-full px-3 py-2 bg-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent"
+            placeholder="Describe this task in detail..."
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Details -->
+    <div *ngIf="currentStep === 1" class="space-y-5 transition-opacity duration-300">
+      <!-- Status & Priority in a grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label for="status" class="block text-sm font-medium text-stone-700 mb-1">Status</label>
-          <select 
-            id="status" 
-            formControlName="status"
-            class="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent"
-          >
-            <option value="todo">To Do</option>
-            <option value="inProgress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
+          <div class="relative">
+            <select 
+              id="status" 
+              formControlName="status"
+              class="appearance-none w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent"
+            >
+              <option value="todo">To Do</option>
+              <option value="inProgress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-stone-600">
+              <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+              </svg>
+            </div>
+          </div>
         </div>
         
         <div>
           <label for="priority" class="block text-sm font-medium text-stone-700 mb-1">Priority</label>
-          <select 
-            id="priority" 
-            formControlName="priority"
-            class="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent"
-          >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
+          <div class="flex space-x-2">
+            <label class="flex-1">
+              <input type="radio" formControlName="priority" value="low" class="sr-only peer">
+              <div class="w-full text-center px-3 py-2 rounded-md border border-stone-300 peer-checked:bg-green-100 peer-checked:border-green-500 peer-checked:text-green-800 cursor-pointer">Low</div>
+            </label>
+            <label class="flex-1">
+              <input type="radio" formControlName="priority" value="medium" class="sr-only peer">
+              <div class="w-full text-center px-3 py-2 rounded-md border border-stone-300 peer-checked:bg-yellow-100 peer-checked:border-yellow-500 peer-checked:text-yellow-800 cursor-pointer">Medium</div>
+            </label>
+            <label class="flex-1">
+              <input type="radio" formControlName="priority" value="high" class="sr-only peer">
+              <div class="w-full text-center px-3 py-2 rounded-md border border-stone-300 peer-checked:bg-rose-100 peer-checked:border-rose-500 peer-checked:text-rose-800 cursor-pointer">High</div>
+            </label>
+          </div>
         </div>
       </div>
       
-      <!-- Due Date -->
+      <!-- Due Date with calendar -->
       <div>
         <label for="dueDate" class="block text-sm font-medium text-stone-700 mb-1">Due Date</label>
-        <input 
-          type="date" 
-          id="dueDate" 
-          formControlName="dueDate"
-          class="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent"
-        >
+        <div class="relative">
+          <input 
+            type="date" 
+            id="dueDate" 
+            formControlName="dueDate"
+            class="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent"
+          >
+          <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-stone-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        </div>
       </div>
       
       <!-- Tags -->
       <div>
-        <label for="tags" class="block text-sm font-medium text-stone-700 mb-1">Tags</label>
+        <label class="block text-sm font-medium text-stone-700 mb-1">Tags</label>
         <div class="flex items-center space-x-2">
           <input 
             type="text" 
             id="tagInput" 
             [formControl]="tagInput"
             (keydown.enter)="addTag($event)"
-            class="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent"
+            class="flex-1 px-3 py-2 bg-stone-100 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent"
             placeholder="Add a tag and press Enter"
           >
           <button 
@@ -80,91 +148,153 @@
         </div>
         
         <!-- Tag chips -->
-        <div class="flex flex-wrap gap-2 mt-2" *ngIf="tags.length > 0">
+        <div class="flex flex-wrap gap-2 mt-3" *ngIf="tags.length > 0">
           <div *ngFor="let tag of tags; let i = index" 
-               class="bg-stone-200 text-stone-800 px-2 py-1 rounded-md flex items-center text-sm">
-            {{ tag }}
-            <button type="button" (click)="removeTag(i)" class="ml-1 text-stone-500 hover:text-stone-800">
+              class="bg-stone-200 text-stone-800 px-3 py-1 rounded-full flex items-center text-sm">
+            <span class="mr-1">{{ tag }}</span>
+            <button type="button" (click)="removeTag(i)" class="text-stone-500 hover:text-stone-800 focus:outline-none">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
               </svg>
             </button>
           </div>
+        </div>
+        <!-- Empty tags state -->
+        <div *ngIf="tags.length === 0" class="text-stone-500 text-sm italic mt-2">
+          No tags added yet
         </div>
       </div>
-      
-      <!-- Attachments -->
+    </div>
+
+    <!-- Step 3: Attachments -->
+    <div *ngIf="currentStep === 2" class="space-y-5 transition-opacity duration-300">
       <div>
-        <label for="attachment" class="block text-sm font-medium text-stone-700 mb-1">Attachments</label>
-        <div class="flex items-center">
+        <label class="block text-sm font-medium text-stone-700 mb-1">File Attachments</label>
+        
+        <!-- Drag and drop area -->
+        <div 
+          class="border-2 border-dashed border-stone-300 rounded-lg p-6 text-center transition hover:bg-stone-50 cursor-pointer"
+          (dragover)="onDragOver($event)" 
+          (dragleave)="onDragLeave($event)" 
+          (drop)="onDrop($event)"
+          [ngClass]="{'border-stone-500 bg-stone-50': isDragging}"
+          (click)="fileInput.click()">
+          
           <input 
             type="file" 
-            id="attachment" 
+            #fileInput 
+            multiple 
+            class="hidden" 
             (change)="onFileSelected($event)"
-            class="hidden" #fileInput>
-          <button 
-            type="button" 
-            (click)="fileInput.click()"
-            class="px-3 py-2 bg-stone-100 text-stone-700 border border-stone-300 rounded-md hover:bg-stone-200 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-            </svg>
-            Click to attach file
-          </button>
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          
+          <p class="mt-2 text-sm text-stone-600">
+            Drag and drop files here, or <span class="text-stone-800 font-medium">click to browse</span>
+          </p>
+          <p class="mt-1 text-xs text-stone-500">
+            Supported formats: PDF, Word, Excel, JPEG, PNG
+          </p>
         </div>
         
-        <!-- File attachments list -->
-        <div class="flex flex-col gap-2 mt-2" *ngIf="files.length > 0">
-          <div *ngFor="let file of files; let i = index" 
-               class="bg-stone-100 text-stone-800 px-3 py-2 rounded-md flex items-center justify-between text-sm">
-            <span class="truncate">Attachment {{ i + 1 }}</span>
-            <button type="button" (click)="removeFile(i)" class="text-stone-500 hover:text-stone-800">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
-            </button>
-          </div>
+        <!-- File list -->
+        <div class="mt-4" *ngIf="uploadedFiles.length > 0">
+          <div class="text-sm font-medium text-stone-700 mb-2">Uploaded Files ({{ uploadedFiles.length }})</div>
+          
+          <ul class="space-y-2">
+            <li *ngFor="let file of uploadedFiles; let i = index" class="bg-stone-100 rounded-md p-3 flex items-center">
+              <!-- File icon -->
+              <div class="mr-3 h-8 w-8 flex-shrink-0 flex items-center justify-center rounded bg-white shadow-sm p-1">
+                <svg *ngIf="file.type.includes('pdf')" class="h-5 w-5 text-rose-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M7 18h10v-1.5H7V18zm0-4h10v-1.5H7V14zm0-4h10V8.5H7V10zm-3 8a1 1 0 01-1-1V5a1 1 0 011-1h16a1 1 0 011 1v12a1 1 0 01-1 1H4z"/>
+                </svg>
+                <svg *ngIf="file.type.includes('image')" class="h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6a1 1 0 110-2 1 1 0 010 2z"/>
+                  <path d="M3 19a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" stroke="currentColor" fill="none"/>
+                </svg>
+                <svg *ngIf="file.type.includes('word') || file.type.includes('doc')" class="h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M7 18h10v-1.5H7V18zm0-4h10v-1.5H7V14zm0-4h10V8.5H7V10zm-3 8a1 1 0 01-1-1V5a1 1 0 011-1h16a1 1 0 011 1v12a1 1 0 01-1 1H4z"/>
+                </svg>
+                <svg *ngIf="file.type.includes('excel') || file.type.includes('sheet') || file.type.includes('csv')" class="h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M7 18h10v-1.5H7V18zm0-4h10v-1.5H7V14zm0-4h10V8.5H7V10zm-3 8a1 1 0 01-1-1V5a1 1 0 011-1h16a1 1 0 011 1v12a1 1 0 01-1 1H4z"/>
+                </svg>
+              </div>
+              
+              <!-- File info -->
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-stone-800 truncate">{{ file.name }}</p>
+                <p class="text-xs text-stone-500">{{ formatFileSize(file.size) }}</p>
+              </div>
+              
+              <!-- Progress or actions -->
+              <div *ngIf="file.progress < 100" class="ml-4 flex-shrink-0 flex items-center">
+                <div class="w-16 bg-stone-200 rounded-full h-1.5 mr-2">
+                  <div class="bg-stone-800 h-1.5 rounded-full" [style.width.%]="file.progress"></div>
+                </div>
+                <span class="text-xs text-stone-600">{{ file.progress }}%</span>
+              </div>
+              
+              <button 
+                type="button" 
+                (click)="removeFile(i)"
+                *ngIf="file.progress === 100"
+                class="ml-4 text-stone-500 hover:text-rose-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </li>
+          </ul>
+        </div>
+        
+        <!-- Empty file state -->
+        <div *ngIf="uploadedFiles.length === 0" class="mt-4 text-stone-500 text-sm italic">
+          No files attached yet
         </div>
       </div>
     </div>
     
-    <!-- Right Column -->
-    <div>
-      <!-- Description -->
+    <!-- Navigation buttons -->
+    <div class="flex justify-between pt-4 border-t border-stone-200">
+      <button 
+        type="button"
+        *ngIf="currentStep > 0"
+        (click)="prevStep()"
+        class="px-4 py-2 border border-stone-300 text-stone-700 rounded-md hover:bg-stone-100"
+      >
+        Back
+      </button>
+      <div *ngIf="currentStep === 0"></div>
+      
       <div>
-        <label for="description" class="block text-sm font-medium text-stone-700 mb-1">Description</label>
-        <textarea 
-          id="description" 
-          formControlName="description"
-          rows="5"
-          class="w-full px-3 py-2 bg-stone-100 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-stone-400 focus:border-transparent"
-          placeholder="Task description"
-        ></textarea>
+        <button 
+          type="button"
+          *ngIf="currentStep < formSteps.length - 1"
+          [disabled]="isStepInvalid()"
+          (click)="nextStep()"
+          class="px-4 py-2 bg-stone-800 text-white rounded-md hover:bg-stone-700 disabled:bg-stone-400 disabled:cursor-not-allowed"
+        >
+          Continue
+        </button>
+        
+        <button 
+          type="submit"
+          *ngIf="currentStep === formSteps.length - 1"
+          [disabled]="taskForm.invalid || isSubmitting"
+          class="px-4 py-2 bg-stone-800 text-white rounded-md hover:bg-stone-700 disabled:bg-stone-400 disabled:cursor-not-allowed flex items-center"
+        >
+          <span *ngIf="isSubmitting" class="mr-2">
+            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </span>
+          {{ task ? 'Update Task' : 'Create Task' }}
+        </button>
       </div>
     </div>
-  </div>
-  
-  <!-- Form Buttons -->
-  <div class="flex justify-end space-x-3 pt-4 border-t border-stone-200">
-    <button 
-      type="button"
-      (click)="cancel()"
-      class="px-4 py-2 border border-stone-300 text-stone-700 rounded-md hover:bg-stone-100"
-    >
-      Cancel
-    </button>
-    <button 
-      type="submit"
-      [disabled]="taskForm.invalid || isSubmitting"
-      class="px-4 py-2 bg-stone-800 text-white rounded-md hover:bg-stone-700 disabled:bg-stone-400 disabled:cursor-not-allowed flex items-center"
-    >
-      <span *ngIf="isSubmitting" class="mr-2">
-        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </span>
-      {{ task ? 'Update Task' : 'Create Task' }}
-    </button>
-  </div>
-</form>
+  </form>
+</div>

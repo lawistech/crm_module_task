@@ -10,7 +10,7 @@ import { NotificationService } from '../../../core/services/notification.service
 @Component({
   selector: 'app-task-board',
   standalone: true,
-  imports: [CommonModule, FormsModule,TaskFormComponent],
+  imports: [CommonModule, FormsModule, TaskFormComponent],
   templateUrl: './task-board.component.html',
   styleUrls: ['./task-board.component.scss']
 })
@@ -70,12 +70,37 @@ export class TaskBoardComponent implements OnInit {
       
       return true;
     });
+    
+    // Sort tasks by due date (closest first) and priority
+    this.filteredTasks.sort((a, b) => {
+      // First sort by priority (high -> medium -> low)
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder];
+      const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder];
+      
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      
+      // Then sort by due date if both have one
+      if (a.dueDate && b.dueDate) {
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      }
+      
+      // Tasks with due dates come before those without
+      if (a.dueDate && !b.dueDate) return -1;
+      if (!a.dueDate && b.dueDate) return 1;
+      
+      // Finally sort by creation date (newest first)
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    });
   }
   
   matchesSearch(task: Task): boolean {
     const term = this.searchTerm.toLowerCase();
     return task.title.toLowerCase().includes(term) || 
-           (task.description ? task.description.toLowerCase().includes(term) : false);
+           (task.description ? task.description.toLowerCase().includes(term) : false) ||
+           (task.tags ? task.tags.some(tag => tag.toLowerCase().includes(term)) : false);
   }
 
   deleteTask(id: string): void {
@@ -87,6 +112,7 @@ export class TaskBoardComponent implements OnInit {
           this.notificationService.success('Task deleted successfully');
         },
         error: (error) => {
+          this.notificationService.error('Failed to delete task');
           console.error(error);
         }
       });
@@ -119,24 +145,33 @@ export class TaskBoardComponent implements OnInit {
     
     this.applyFilters();
     this.closeTaskForm();
-    this.notificationService.success('Task saved successfully');
+  }
+  
+  // Helper methods for class names
+  getPriorityBarClass(priority: string): string {
+    switch (priority) {
+      case 'high': return 'bg-rose-500';
+      case 'medium': return 'bg-amber-500';
+      case 'low': return 'bg-emerald-500';
+      default: return 'bg-stone-500';
+    }
   }
   
   getPriorityClass(priority: string): string {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'high': return 'bg-rose-100 text-rose-800';
+      case 'medium': return 'bg-amber-100 text-amber-800';
+      case 'low': return 'bg-emerald-100 text-emerald-800';
+      default: return 'bg-stone-100 text-stone-800';
     }
   }
   
   getStatusClass(status: string): string {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
+      case 'completed': return 'bg-emerald-100 text-emerald-800';
       case 'inProgress': return 'bg-blue-100 text-blue-800';
-      case 'todo': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'todo': return 'bg-stone-100 text-stone-800';
+      default: return 'bg-stone-100 text-stone-800';
     }
   }
   
@@ -147,5 +182,37 @@ export class TaskBoardComponent implements OnInit {
       case 'completed': return 'Completed';
       default: return status;
     }
+  }
+  
+  isOverdue(dueDate: Date | undefined): boolean {
+    if (!dueDate) return false;
+    return new Date(dueDate) < new Date();
+  }
+  
+  // Filter management
+  hasActiveFilters(): boolean {
+    return this.searchTerm !== '' || this.statusFilter !== 'all' || this.priorityFilter !== 'all';
+  }
+  
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.applyFilters();
+  }
+  
+  clearStatusFilter(): void {
+    this.statusFilter = 'all';
+    this.applyFilters();
+  }
+  
+  clearPriorityFilter(): void {
+    this.priorityFilter = 'all';
+    this.applyFilters();
+  }
+  
+  clearAllFilters(): void {
+    this.searchTerm = '';
+    this.statusFilter = 'all';
+    this.priorityFilter = 'all';
+    this.applyFilters();
   }
 }
