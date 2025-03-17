@@ -1,10 +1,9 @@
 // src/app/core/services/file-upload.service.ts
 import { Injectable } from '@angular/core';
-import { Observable, from, map, catchError, throwError } from 'rxjs';
+import { Observable, from, map, catchError, throwError, switchMap } from 'rxjs';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
 import { NotificationService } from './notification.service';
-import { v4 as uuidv4 } from 'uuid';
 
 export interface FileData {
   id: string;
@@ -28,6 +27,14 @@ export class FileUploadService {
     private notificationService: NotificationService
   ) {}
 
+  // Generate a unique ID without using uuid library
+  private generateUniqueId(): string {
+    // Use a combination of timestamp, random numbers, and user-specific data
+    const timestamp = new Date().getTime();
+    const randomPart = Math.random().toString(36).substring(2, 10);
+    return `${timestamp}-${randomPart}`;
+  }
+
   uploadFile(file: File): Observable<string> {
     const currentUser = this.authService.getCurrentUser();
     
@@ -37,7 +44,7 @@ export class FileUploadService {
     
     // Generate a unique filename to prevent collisions
     const fileExt = file.name.split('.').pop();
-    const fileName = `${uuidv4()}.${fileExt}`;
+    const fileName = `${this.generateUniqueId()}.${fileExt}`;
     const filePath = `task-attachments/${currentUser.id}/${fileName}`;
     
     // Upload to Supabase Storage
@@ -45,7 +52,7 @@ export class FileUploadService {
       .from('files')
       .upload(filePath, file)
     ).pipe(
-      map(response => {
+      switchMap(response => {
         if (response.error) throw response.error;
         
         // After successful upload, create a record in the file_attachments table
@@ -104,7 +111,7 @@ export class FileUploadService {
   
   private mapFileData(file: any): FileData {
     // Generate download URL
-    const { publicURL } = this.supabaseService.supabaseClient.storage
+    const { data } = this.supabaseService.supabaseClient.storage
       .from('files')
       .getPublicUrl(file.path);
     
@@ -117,7 +124,7 @@ export class FileUploadService {
       taskId: file.task_id,
       userId: file.user_id,
       createdAt: new Date(file.created_at),
-      url: publicURL || ''
+      url: data.publicUrl || ''
     };
   }
   

@@ -1,4 +1,3 @@
-// src/app/core/models/task.model.ts
 export interface Task {
   id: string;
   title: string;
@@ -7,7 +6,8 @@ export interface Task {
   priority: 'low' | 'medium' | 'high';
   dueDate?: Date;
   tags: string[];
-  completed?: boolean; // For backward compatibility
+  attachments?: string[]; // Add this line
+  completed?: boolean;
   createdBy?: string;
   createdAt?: Date;
   updatedAt?: Date;

@@ -10,7 +10,7 @@ import { NotificationService } from '../../../core/services/notification.service
 @Component({
   selector: 'app-task-board',
   standalone: true,
-  imports: [CommonModule, FormsModule, TaskFormComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './task-board.component.html',
   styleUrls: ['./task-board.component.scss']
 })
