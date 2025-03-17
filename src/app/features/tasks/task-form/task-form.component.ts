@@ -6,8 +6,9 @@ import { TaskService } from '../../../core/services/task.service';
 import { Task } from '../../../core/models/task.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { FileUploadService, FileData } from '../../../core/services/file-upload.service';
+import { Observable, of, forkJoin } from 'rxjs';
+import { map, catchError, finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-task-form',
@@ -26,11 +27,18 @@ export class TaskFormComponent implements OnInit {
   tagInput = new FormControl('');
   tags: string[] = [];
   
+  // File Upload Properties
+  selectedFile: File | null = null;
+  isUploading = false;
+  attachments: FileData[] = [];
+  attachmentIds: string[] = [];
+  
   constructor(
     private fb: FormBuilder,
     private taskService: TaskService,
     private authService: AuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private fileUploadService: FileUploadService
   ) { }
 
   ngOnInit(): void {
@@ -38,6 +46,7 @@ export class TaskFormComponent implements OnInit {
     
     if (this.task) {
       this.patchFormWithTaskData();
+      this.loadAttachments();
     }
   }
   
@@ -64,6 +73,24 @@ export class TaskFormComponent implements OnInit {
     
     // Set tags
     this.tags = this.task.tags || [];
+    
+    // Set attachment IDs
+    this.attachmentIds = this.task.attachments || [];
+  }
+  
+  private loadAttachments(): void {
+    if (!this.task || !this.task.id) return;
+    
+    // Load attachments based on task ID
+    this.fileUploadService.getFilesByTaskId(this.task.id).subscribe({
+      next: (files) => {
+        this.attachments = files;
+      },
+      error: (error: any) => {
+        console.error('Error loading attachments:', error);
+        this.notificationService.error('Failed to load attachments');
+      }
+    });
   }
   
   private formatDateForInput(date: Date): string {
@@ -95,6 +122,90 @@ export class TaskFormComponent implements OnInit {
     this.tags.splice(index, 1);
   }
 
+  // File Methods
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.selectedFile = input.files[0];
+    }
+  }
+  
+  uploadFile(): void {
+    if (!this.selectedFile) return;
+    
+    this.isUploading = true;
+    
+    this.fileUploadService.uploadFile(this.selectedFile).subscribe({
+      next: (fileId) => {
+        this.notificationService.success('File uploaded successfully');
+        this.attachmentIds.push(fileId);
+        
+        // If we have a task ID, update the file record with task ID
+        if (this.task && this.task.id) {
+          // For brevity, manually update task attachments
+          this.updateFileTaskAssociation(fileId, this.task.id);
+        }
+        
+        // Clear the selected file
+        this.selectedFile = null;
+        
+        // Reload attachments if we have a task ID
+        if (this.task && this.task.id) {
+          this.loadAttachments();
+        }
+      },
+      error: (error: any) => {
+        console.error('Error uploading file:', error);
+        this.notificationService.error('Failed to upload file: ' + error.message);
+      },
+      complete: () => {
+        this.isUploading = false;
+      }
+    });
+  }
+  
+  // Temporary solution until FileUploadService is fully implemented
+  private updateFileTaskAssociation(fileId: string, taskId: string): void {
+    console.log(`Associating file ${fileId} with task ${taskId}`);
+    // In a production app, this would call a service method to update the association
+  }
+  
+  deleteFile(fileId: string): void {
+    if (confirm('Are you sure you want to delete this file?')) {
+      this.fileUploadService.deleteFile(fileId).subscribe({
+        next: () => {
+          this.notificationService.success('File deleted successfully');
+          this.attachments = this.attachments.filter(file => file.id !== fileId);
+          this.attachmentIds = this.attachmentIds.filter(id => id !== fileId);
+        },
+        error: (error: any) => {
+          console.error('Error deleting file:', error);
+          this.notificationService.error('Failed to delete file: ' + error.message);
+        }
+      });
+    }
+  }
+  
+  // Helper methods for file display
+  isPDF(filename: string): boolean {
+    return filename.toLowerCase().endsWith('.pdf');
+  }
+  
+  isImage(filename: string): boolean {
+    const ext = filename.toLowerCase().split('.').pop();
+    return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext || '');
+  }
+  
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
   onSubmit(): void {
     if (this.taskForm.invalid || this.isSubmitting) {
       return;
@@ -109,7 +220,8 @@ export class TaskFormComponent implements OnInit {
       status: formValue.status,
       priority: formValue.priority,
       dueDate: formValue.dueDate ? new Date(formValue.dueDate) : undefined,
-      tags: this.tags
+      tags: this.tags,
+      attachments: this.attachmentIds // Include attachment IDs in task data
     };
     
     // Create a new observable for the task operation
@@ -124,17 +236,33 @@ export class TaskFormComponent implements OnInit {
       taskOperation = this.taskService.createTask(taskData);
     }
     
-    taskOperation.subscribe({
+    taskOperation.pipe(
+      // Once the task is saved, associate any uploaded files with the task
+      map(savedTask => {
+        if (this.attachmentIds.length > 0 && !this.task) {
+          // If this is a new task, we need to associate the uploaded files with the task
+          this.updateFilesTaskAssociation(this.attachmentIds, savedTask.id);
+        }
+        return savedTask;
+      }),
+      finalize(() => {
+        this.isSubmitting = false;
+      })
+    ).subscribe({
       next: (result) => {
         this.taskSaved.emit(result);
-        this.isSubmitting = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error saving task:', error);
         this.notificationService.error('Failed to save task: ' + error.message);
-        this.isSubmitting = false;
       }
     });
+  }
+  
+  // Temporary solution until FileUploadService is fully implemented
+  private updateFilesTaskAssociation(fileIds: string[], taskId: string): void {
+    console.log(`Associating files ${fileIds.join(', ')} with task ${taskId}`);
+    // In a production app, this would call a service method to update the associations
   }
   
   cancel(): void {

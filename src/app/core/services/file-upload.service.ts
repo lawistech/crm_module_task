@@ -11,7 +11,7 @@ export interface FileData {
   path: string;
   size: number;
   contentType: string;
-  taskId: string;
+  taskId?: string;
   userId: string;
   createdAt: Date;
   url: string;
@@ -29,13 +29,13 @@ export class FileUploadService {
 
   // Generate a unique ID without using uuid library
   private generateUniqueId(): string {
-    // Use a combination of timestamp, random numbers, and user-specific data
+    // Use a combination of timestamp and random numbers
     const timestamp = new Date().getTime();
     const randomPart = Math.random().toString(36).substring(2, 10);
     return `${timestamp}-${randomPart}`;
   }
 
-  uploadFile(file: File): Observable<string> {
+  uploadFile(file: File, taskId?: string): Observable<string> {
     const currentUser = this.authService.getCurrentUser();
     
     if (!currentUser) {
@@ -61,7 +61,8 @@ export class FileUploadService {
           path: filePath,
           size: file.size,
           content_type: file.type,
-          user_id: currentUser.id
+          user_id: currentUser.id,
+          task_id: taskId || null
         };
         
         return this.createFileRecord(fileData);
