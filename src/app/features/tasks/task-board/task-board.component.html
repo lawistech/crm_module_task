@@ -66,7 +66,8 @@
 
   <!-- Task Grid -->
   <div *ngIf="!isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    <div *ngFor="let task of filteredTasks" class="bg-white rounded-lg shadow-sm border border-stone-200 overflow-hidden hover:shadow-md transition-shadow">
+    <div *ngFor="let task of filteredTasks" 
+         class="bg-white rounded-lg shadow-sm border border-stone-200 overflow-hidden hover:shadow-md transition-shadow">
       <div class="p-4">
         <div class="flex justify-between mb-2">
           <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getPriorityClass(task.priority)">
@@ -77,8 +78,10 @@
           </span>
         </div>
         
-        <h3 class="font-medium text-lg mb-2">{{ task.title }}</h3>
-        <p *ngIf="task.description" class="text-stone-600 text-sm mb-3">{{ task.description }}</p>
+        <h3 class="font-medium text-lg mb-2 cursor-pointer hover:text-stone-600" (click)="viewTaskDetails(task)">
+          {{ task.title }}
+        </h3>
+        <p *ngIf="task.description" class="text-stone-600 text-sm mb-3 line-clamp-2">{{ task.description }}</p>
         
         <div *ngIf="task.dueDate" class="flex items-center text-sm text-stone-500 mb-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -94,6 +97,13 @@
         </div>
         
         <div class="flex mt-4 pt-3 border-t border-stone-100">
+          <button (click)="viewTaskDetails(task)" class="text-stone-600 hover:text-stone-800 text-sm mr-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            View
+          </button>
           <button (click)="editTask(task)" class="text-stone-600 hover:text-stone-800 text-sm mr-4">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -109,19 +119,6 @@
         </div>
       </div>
     </div>
-    
-    <!-- Empty state -->
-    <div *ngIf="!isLoading && filteredTasks.length === 0" class="col-span-full py-10 text-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-stone-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-      </svg>
-      <h3 class="text-lg font-medium text-stone-600 mb-1">No tasks found</h3>
-      <p class="text-stone-500">Try adjusting your filters or create a new task</p>
-      <button (click)="createTask()" class="mt-4 bg-stone-800 hover:bg-stone-700 text-white px-4 py-2 rounded-md">
-        Create New Task
-      </button>
-    </div>
-  </div>
 
   <!-- Task Form Modal - Replace this in your task-board.component.html -->
   <div *ngIf="showTaskForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">

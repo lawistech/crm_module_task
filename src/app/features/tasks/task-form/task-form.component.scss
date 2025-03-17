@@ -17,6 +17,12 @@
   width: 100%;
 }
 
+@media (min-width: 641px) {
+  :host {
+    width: 40%;
+  }
+}
+
 // Form step animations
 [class*="transition-opacity"] {
   animation: fadeIn 0.3s ease-in-out forwards;

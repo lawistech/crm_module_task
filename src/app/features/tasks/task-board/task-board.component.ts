@@ -5,12 +5,13 @@ import { FormsModule } from '@angular/forms';
 import { Task } from '../../../core/models/task.model';
 import { TaskService } from '../../../core/services/task.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
+import { TaskDetailsComponent } from '../task-details/task-details.component';
 import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-task-board',
   standalone: true,
-  imports: [CommonModule, FormsModule, TaskFormComponent],
+  imports: [CommonModule, FormsModule, TaskFormComponent, TaskDetailsComponent],
   templateUrl: './task-board.component.html',
   styleUrls: ['./task-board.component.scss']
 })
@@ -18,7 +19,9 @@ export class TaskBoardComponent implements OnInit {
   tasks: Task[] = [];
   filteredTasks: Task[] = [];
   showTaskForm: boolean = false;
+  showTaskDetails: boolean = false;
   currentTask: Task | null = null;
+  selectedTask: Task | null = null;
   isLoading: boolean = true;
   
   // Filters
@@ -127,6 +130,22 @@ export class TaskBoardComponent implements OnInit {
   editTask(task: Task): void {
     this.currentTask = {...task};
     this.showTaskForm = true;
+  }
+  
+  viewTaskDetails(task: Task): void {
+    this.selectedTask = {...task};
+    this.showTaskDetails = true;
+  }
+  
+  closeTaskDetails(): void {
+    this.showTaskDetails = false;
+    this.selectedTask = null;
+  }
+  
+  editTaskFromDetails(task: Task): void {
+    this.currentTask = task;
+    this.showTaskForm = true;
+    this.closeTaskDetails();
   }
 
   closeTaskForm(): void {
