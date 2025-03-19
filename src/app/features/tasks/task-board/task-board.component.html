@@ -111,18 +111,22 @@
 
   <!-- Task Board (Kanban Style) when statusFilter is 'all' -->
   <div *ngIf="!isLoading && filteredTasks.length > 0 && statusFilter === 'all'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- To Do Column -->
-    <div class="bg-stone-50 rounded-lg shadow-sm p-4">
+    <!-- To Do Column - Visually distinct styling -->
+    <div class="bg-amber-50 rounded-lg shadow-sm p-4 border-2 border-amber-200">
       <div class="flex items-center mb-4">
-        <div class="w-3 h-3 rounded-full bg-stone-400 mr-2"></div>
-        <h3 class="font-medium text-stone-700">To Do</h3>
-        <span class="ml-2 bg-stone-200 text-stone-600 text-xs px-2 py-0.5 rounded-full">
-          {{ filteredTasks.filter(t => t.status === 'todo').length }}
+        <div class="h-6 w-6 rounded-full flex items-center justify-center bg-amber-100 mr-2 text-amber-700 font-bold text-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+        </div>
+        <h3 class="font-medium text-amber-800 text-lg">To Do</h3>
+        <span class="ml-2 bg-amber-200 text-amber-800 text-xs px-2 py-0.5 rounded-full">
+          {{ getCountByStatus('todo') }}
         </span>
       </div>
       <div class="space-y-3">
         <div *ngFor="let task of filteredTasks | filterByStatus:'todo'" 
-             class="bg-white rounded-lg shadow-sm border-l-4 border-stone-400 hover:shadow-md transition-shadow p-3">
+             class="bg-white rounded-lg shadow-sm border-l-4 border-amber-400 hover:shadow-md transition-shadow p-3">
           <div class="flex justify-between mb-2">
             <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getPriorityClass(task.priority)">
               {{ task.priority | titlecase }}
@@ -135,7 +139,7 @@
             </div>
           </div>
           
-          <h3 class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-stone-600" (click)="viewTaskDetails(task)">
+          <h3 class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-amber-700" (click)="viewTaskDetails(task)">
             {{ task.title }}
           </h3>
           
@@ -147,7 +151,7 @@
           </div>
           
           <div class="flex mt-3 pt-2 border-t border-stone-100 justify-end">
-            <button (click)="viewTaskDetails(task)" class="text-stone-500 hover:text-stone-700 text-xs">
+            <button (click)="viewTaskDetails(task)" class="text-amber-600 hover:text-amber-800 bg-amber-50 rounded-full p-1">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -159,12 +163,16 @@
     </div>
     
     <!-- In Progress Column -->
-    <div class="bg-stone-50 rounded-lg shadow-sm p-4">
+    <div class="bg-blue-50 rounded-lg shadow-sm p-4 border-2 border-blue-200">
       <div class="flex items-center mb-4">
-        <div class="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
-        <h3 class="font-medium text-stone-700">In Progress</h3>
-        <span class="ml-2 bg-stone-200 text-stone-600 text-xs px-2 py-0.5 rounded-full">
-          {{ filteredTasks.filter(t => t.status === 'inProgress').length }}
+        <div class="h-6 w-6 rounded-full flex items-center justify-center bg-blue-100 mr-2 text-blue-700 font-bold text-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <h3 class="font-medium text-blue-800 text-lg">In Progress</h3>
+        <span class="ml-2 bg-blue-200 text-blue-800 text-xs px-2 py-0.5 rounded-full">
+          {{ getCountByStatus('inProgress') }}
         </span>
       </div>
       <div class="space-y-3">
@@ -182,7 +190,7 @@
             </div>
           </div>
           
-          <h3 class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-stone-600" (click)="viewTaskDetails(task)">
+          <h3 class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-blue-700" (click)="viewTaskDetails(task)">
             {{ task.title }}
           </h3>
           
@@ -194,7 +202,7 @@
           </div>
           
           <div class="flex mt-3 pt-2 border-t border-stone-100 justify-end">
-            <button (click)="viewTaskDetails(task)" class="text-stone-500 hover:text-stone-700 text-xs">
+            <button (click)="viewTaskDetails(task)" class="text-blue-600 hover:text-blue-800 bg-blue-50 rounded-full p-1">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -206,12 +214,16 @@
     </div>
     
     <!-- Completed Column -->
-    <div class="bg-stone-50 rounded-lg shadow-sm p-4">
+    <div class="bg-emerald-50 rounded-lg shadow-sm p-4 border-2 border-emerald-200">
       <div class="flex items-center mb-4">
-        <div class="w-3 h-3 rounded-full bg-emerald-500 mr-2"></div>
-        <h3 class="font-medium text-stone-700">Completed</h3>
-        <span class="ml-2 bg-stone-200 text-stone-600 text-xs px-2 py-0.5 rounded-full">
-          {{ filteredTasks.filter(t => t.status === 'completed').length }}
+        <div class="h-6 w-6 rounded-full flex items-center justify-center bg-emerald-100 mr-2 text-emerald-700 font-bold text-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h3 class="font-medium text-emerald-800 text-lg">Completed</h3>
+        <span class="ml-2 bg-emerald-200 text-emerald-800 text-xs px-2 py-0.5 rounded-full">
+          {{ getCountByStatus('completed') }}
         </span>
       </div>
       <div class="space-y-3">
@@ -229,7 +241,7 @@
             </div>
           </div>
           
-          <h3 class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-stone-600" (click)="viewTaskDetails(task)">
+          <h3 class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-emerald-700" (click)="viewTaskDetails(task)">
             {{ task.title }}
           </h3>
           
@@ -241,7 +253,7 @@
           </div>
           
           <div class="flex mt-3 pt-2 border-t border-stone-100 justify-end">
-            <button (click)="viewTaskDetails(task)" class="text-stone-500 hover:text-stone-700 text-xs">
+            <button (click)="viewTaskDetails(task)" class="text-emerald-600 hover:text-emerald-800 bg-emerald-50 rounded-full p-1">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -256,21 +268,18 @@
   <!-- Regular Task List (Grid) when filtering by status -->
   <div *ngIf="!isLoading && filteredTasks.length > 0 && statusFilter !== 'all'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     <div *ngFor="let task of filteredTasks" 
-         class="bg-white rounded-lg shadow-sm border-l-4 overflow-hidden hover:shadow-md transition-shadow"
+         class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow"
          [ngClass]="{
-            'border-stone-400': task.status === 'todo',
-            'border-blue-500': task.status === 'inProgress',
-            'border-emerald-500': task.status === 'completed'
+            'border-l-8 border-amber-400': task.status === 'todo',
+            'border-l-8 border-blue-500': task.status === 'inProgress',
+            'border-l-8 border-emerald-500': task.status === 'completed'
          }">
       <div class="p-4">
         <div class="flex justify-between mb-2">
           <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getPriorityClass(task.priority)">
             {{ task.priority | titlecase }}
           </span>
-          <span [class]="'text-xs font-semibold px-2 py-1 rounded flex items-center ' + getStatusClass(task.status)">
-            <span *ngIf="task.status === 'todo'" class="w-2 h-2 bg-stone-500 rounded-full mr-1"></span>
-            <span *ngIf="task.status === 'inProgress'" class="w-2 h-2 bg-blue-500 rounded-full mr-1"></span>
-            <span *ngIf="task.status === 'completed'" class="w-2 h-2 bg-emerald-500 rounded-full mr-1"></span>
+          <span [class]="getStatusBadgeClass(task.status)">
             {{ getStatusDisplay(task.status) }}
           </span>
         </div>
@@ -299,7 +308,11 @@
         </div>
         
         <div class="flex mt-4 pt-3 border-t border-stone-100">
-          <button (click)="viewTaskDetails(task)" class="text-stone-600 hover:text-stone-800 text-sm mr-4">
+          <button (click)="viewTaskDetails(task)" 
+                  [ngClass]="{'text-amber-600 hover:text-amber-800': task.status === 'todo', 
+                              'text-blue-600 hover:text-blue-800': task.status === 'inProgress',
+                              'text-emerald-600 hover:text-emerald-800': task.status === 'completed'}" 
+                  class="text-sm mr-4">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
