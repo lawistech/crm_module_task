@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from './core/services/auth.service';
 import { TaskBoardComponent } from './features/tasks/task-board/task-board.component';
 import { RouterModule } from '@angular/router';
+import { NotificationComponent } from './shared/components/notification/notification.component';
 
 
 @Component({
@@ -12,7 +13,7 @@ import { RouterModule } from '@angular/router';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   standalone: true,
-  imports: [CommonModule, TaskBoardComponent, RouterModule]
+  imports: [CommonModule, TaskBoardComponent, RouterModule, NotificationComponent]
 })
 export class AppComponent implements OnInit {
   showSidebar = true;

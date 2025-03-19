@@ -7,7 +7,8 @@ import { Task } from '../../../core/models/task.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { FileUploadService } from '../../../core/services/file-upload.service';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 interface UploadedFile {
   id?: string;
@@ -104,7 +105,7 @@ export class TaskFormComponent implements OnInit {
   }
   
   private async loadTaskAttachments(): Promise<void> {
-    if (!this.task || !this.task.attachments || this.task.attachments.length === 0) {
+    if (!this.task || !this.task.id) {
       return;
     }
     
@@ -198,8 +199,17 @@ export class TaskFormComponent implements OnInit {
       
       this.uploadedFiles.push(uploadedFile);
       
-      // Simulate upload progress - in a real app, you'd use your upload service
-      this.simulateFileUpload(this.uploadedFiles.length - 1);
+      // Start tracking progress
+      const fileIndex = this.uploadedFiles.length - 1;
+      
+      // If task already exists, upload the file immediately and associate with task
+      if (this.task && this.task.id) {
+        this.uploadFileWithProgress(fileIndex, this.task.id);
+      } else {
+        // Otherwise just track it, it will be uploaded when the task is created
+        // Just show the progress for now
+        this.simulateFileUploadProgress(fileIndex);
+      }
     });
     
     // Reset the file input so the same file can be selected again
@@ -208,15 +218,69 @@ export class TaskFormComponent implements OnInit {
     }
   }
   
-  // This would be replaced by your actual file upload method
-  simulateFileUpload(fileIndex: number): void {
+  // Upload a file and track its progress
+  uploadFileWithProgress(fileIndex: number, taskId: string): void {
+    const uploadedFile = this.uploadedFiles[fileIndex];
+    if (!uploadedFile || uploadedFile.uploaded) return;
+    
+    // Create a FormData object to handle the file upload
+    const formData = new FormData();
+    formData.append('file', uploadedFile.file);
+    
+    // Use the FileUploadService with progress tracking
+    this.fileUploadService.uploadFile(uploadedFile.file, taskId)
+      .subscribe({
+        next: (fileId) => {
+          // Update the file with the id from the server and mark as uploaded
+          this.uploadedFiles[fileIndex].id = fileId;
+          this.uploadedFiles[fileIndex].uploaded = true;
+          this.uploadedFiles[fileIndex].progress = 100;
+          
+          // Get the URL for the uploaded file
+          this.fileUploadService.getFilesByTaskId(taskId).subscribe(files => {
+            const uploadedFileDetails = files.find(f => f.id === fileId);
+            if (uploadedFileDetails) {
+              this.uploadedFiles[fileIndex].url = uploadedFileDetails.url;
+            }
+          });
+          
+          this.notificationService.success(`File ${uploadedFile.name} uploaded successfully`);
+        },
+        error: (error) => {
+          console.error('Error uploading file:', error);
+          this.notificationService.error(`Failed to upload file ${uploadedFile.name}`);
+          // Keep the file in the list but indicate upload error
+          this.uploadedFiles[fileIndex].progress = 0;
+        }
+      });
+    
+    // Simulate progress until we get the real progress
+    this.simulateFileUploadProgress(fileIndex);
+  }
+  
+  // This simulates progress until real progress tracking is implemented
+  simulateFileUploadProgress(fileIndex: number): void {
+    let progress = 0;
     const interval = setInterval(() => {
-      if (this.uploadedFiles[fileIndex].progress < 100) {
-        this.uploadedFiles[fileIndex].progress += 10;
-      } else {
+      // Stop if the file is no longer in the array
+      if (!this.uploadedFiles[fileIndex]) {
         clearInterval(interval);
+        return;
       }
-    }, 300);
+      
+      // Stop if progress reaches 90% (the final 10% would be the server confirming the upload)
+      if (progress >= 90 || this.uploadedFiles[fileIndex].progress >= 100) {
+        clearInterval(interval);
+        return;
+      }
+      
+      // Increment progress by random amount
+      progress += Math.floor(Math.random() * 10) + 5;
+      progress = Math.min(progress, 90);
+      
+      // Update the progress display
+      this.uploadedFiles[fileIndex].progress = progress;
+    }, 500);
   }
   
   removeFile(index: number): void {
@@ -248,30 +312,6 @@ export class TaskFormComponent implements OnInit {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
   
-  // Quick date setter for better UX
-  setDueDate(option: 'today' | 'tomorrow' | 'nextWeek'): void {
-    const today = new Date();
-    let date: Date;
-    
-    switch(option) {
-      case 'today':
-        date = today;
-        break;
-      case 'tomorrow':
-        date = new Date(today);
-        date.setDate(date.getDate() + 1);
-        break;
-      case 'nextWeek':
-        date = new Date(today);
-        date.setDate(date.getDate() + 7);
-        break;
-    }
-    
-    this.taskForm.patchValue({
-      dueDate: this.formatDateForInput(date)
-    });
-  }
-  
   // Navigation methods for multi-step form
   nextStep(): void {
     if (this.currentStep < this.formSteps.length - 1 && !this.isStepInvalid()) {
@@ -300,13 +340,17 @@ export class TaskFormComponent implements OnInit {
     this.isSubmitting = true;
     const formValue = this.taskForm.value;
     
+    // Basic task data
     const taskData = {
       title: formValue.title,
       description: formValue.description,
       status: formValue.status,
       priority: formValue.priority,
       dueDate: formValue.dueDate ? new Date(formValue.dueDate) : undefined,
-      tags: this.tags
+      tags: this.tags,
+      attachments: this.uploadedFiles
+        .filter(file => file.uploaded && file.id)
+        .map(file => file.id as string)
     };
     
     try {
@@ -322,22 +366,36 @@ export class TaskFormComponent implements OnInit {
       }
       
       // Upload any files that haven't been uploaded yet
-      const filePromises = this.uploadedFiles
+      const newFileUploads = this.uploadedFiles
         .filter(file => !file.uploaded)
-        .map(async (file) => {
-          try {
-            const fileId = await firstValueFrom(this.fileUploadService.uploadFile(file.file));
-            
-            // In a real app, you'd associate this file with the task
-            // For example by updating the task with the new attachment
-            return fileId;
-          } catch (error) {
-            console.error(`Error uploading file ${file.name}:`, error);
-            throw error;
-          }
+        .map(file => {
+          return this.fileUploadService.uploadFile(file.file, taskResult.id)
+            .pipe(
+              catchError(error => {
+                console.error(`Error uploading file ${file.name}:`, error);
+                return of(null); // Return observable that emits null so forkJoin doesn't fail
+              })
+            );
         });
       
-      await Promise.all(filePromises);
+      if (newFileUploads.length > 0) {
+        await firstValueFrom(forkJoin(newFileUploads));
+        
+        // Update task attachments
+        if (taskResult.attachments) {
+          const allAttachmentIds = [...taskResult.attachments];
+          
+          // Get fileIds that were just uploaded
+          const fileIds = await firstValueFrom(this.fileUploadService.getFilesByTaskId(taskResult.id))
+            .then(files => files.map(file => file.id));
+          
+          // Combine all attachment IDs
+          taskResult.attachments = [...new Set([...allAttachmentIds, ...fileIds])];
+          
+          // Update the task with all attachment IDs
+          await firstValueFrom(this.taskService.updateTask(taskResult));
+        }
+      }
       
       this.taskSaved.emit(taskResult);
       this.notificationService.success(`Task ${this.task ? 'updated' : 'created'} successfully`);

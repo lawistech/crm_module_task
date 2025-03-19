@@ -1,6 +1,6 @@
 // src/app/core/services/task.service.ts
 import { Injectable } from '@angular/core';
-import { Observable, from, map, catchError, throwError } from 'rxjs';
+import { Observable, from, map, catchError, throwError, switchMap, of } from 'rxjs';
 import { Task, TaskCreate } from '../models/task.model';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
@@ -114,6 +114,61 @@ export class TaskService {
     );
   }
 
+  // Helper method to add an attachment to a task
+  addAttachmentToTask(taskId: string, attachmentId: string): Observable<Task> {
+    return this.getTaskById(taskId).pipe(
+      switchMap(task => {
+        const attachments = task.attachments || [];
+        
+        // Add attachment if it doesn't already exist
+        if (!attachments.includes(attachmentId)) {
+          attachments.push(attachmentId);
+          
+          const updatedTask = {
+            ...task,
+            attachments
+          };
+          
+          return this.updateTask(updatedTask);
+        }
+        
+        return of(task); // Return the task unchanged if attachment already exists
+      }),
+      catchError(error => {
+        this.notificationService.error(`Failed to add attachment to task: ${error.message}`);
+        return throwError(() => error);
+      })
+    );
+  }
+  
+  // Helper method to remove an attachment from a task
+  removeAttachmentFromTask(taskId: string, attachmentId: string): Observable<Task> {
+    return this.getTaskById(taskId).pipe(
+      switchMap(task => {
+        const attachments = task.attachments || [];
+        
+        // Remove attachment if it exists
+        const index = attachments.indexOf(attachmentId);
+        if (index !== -1) {
+          attachments.splice(index, 1);
+          
+          const updatedTask = {
+            ...task,
+            attachments
+          };
+          
+          return this.updateTask(updatedTask);
+        }
+        
+        return of(task); // Return the task unchanged if attachment doesn't exist
+      }),
+      catchError(error => {
+        this.notificationService.error(`Failed to remove attachment from task: ${error.message}`);
+        return throwError(() => error);
+      })
+    );
+  }
+
   // Helper methods to convert between camelCase (TypeScript) and snake_case (PostgreSQL)
   private formatTaskForDatabase(task: any): any {
     return {
@@ -125,6 +180,7 @@ export class TaskService {
       contact_id: task.contactId,
       call_id: task.callId,
       tags: task.tags,
+      attachments: task.attachments,
       assigned_to: task.assignedTo,
       created_by: task.createdBy,
     };
@@ -139,6 +195,7 @@ export class TaskService {
       priority: task.priority,
       dueDate: task.due_date ? new Date(task.due_date) : undefined,
       tags: task.tags || [],
+      attachments: task.attachments || [],
       createdBy: task.created_by,
       createdAt: new Date(task.created_at),
       updatedAt: new Date(task.updated_at)

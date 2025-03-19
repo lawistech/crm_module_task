@@ -1,6 +1,7 @@
 // src/app/core/services/file-upload.service.ts
 import { Injectable } from '@angular/core';
-import { Observable, from, map, catchError, throwError, switchMap } from 'rxjs';
+import { Observable, from, of, throwError } from 'rxjs';
+import { map, catchError, switchMap, tap } from 'rxjs/operators';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
 import { NotificationService } from './notification.service';
@@ -43,24 +44,34 @@ export class FileUploadService {
     }
     
     // Generate a unique filename to prevent collisions
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split('.').pop() || '';
     const fileName = `${this.generateUniqueId()}.${fileExt}`;
     const filePath = `task-attachments/${currentUser.id}/${fileName}`;
     
-    // Upload to Supabase Storage
-    return from(this.supabaseService.supabaseClient.storage
-      .from('files')
-      .upload(filePath, file)
-    ).pipe(
+    // First check if we can read the file
+    return from(this.readFileAsArrayBuffer(file)).pipe(
+      switchMap(fileBuffer => {
+        // Upload to Supabase Storage
+        return from(this.supabaseService.supabaseClient.storage
+          .from('files')
+          .upload(filePath, fileBuffer, {
+            contentType: file.type || 'application/octet-stream',
+            cacheControl: '3600'
+          })
+        );
+      }),
       switchMap(response => {
-        if (response.error) throw response.error;
+        if (response.error) {
+          this.notificationService.error(`Upload failed: ${response.error.message}`);
+          return throwError(() => response.error);
+        }
         
         // After successful upload, create a record in the file_attachments table
         const fileData = {
           name: file.name,
           path: filePath,
           size: file.size,
-          content_type: file.type,
+          content_type: file.type || 'application/octet-stream',
           user_id: currentUser.id,
           task_id: taskId || null
         };
@@ -68,10 +79,21 @@ export class FileUploadService {
         return this.createFileRecord(fileData);
       }),
       catchError(error => {
-        this.notificationService.error(`Failed to upload file: ${error.message}`);
+        console.error('Error in file upload process:', error);
+        this.notificationService.error(`Failed to upload file: ${error.message || 'Unknown error'}`);
         return throwError(() => error);
       })
     );
+  }
+  
+  // Convert File to ArrayBuffer for Supabase upload
+  private readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as ArrayBuffer);
+      reader.onerror = error => reject(error);
+      reader.readAsArrayBuffer(file);
+    });
   }
   
   private createFileRecord(fileData: any): Observable<string> {
