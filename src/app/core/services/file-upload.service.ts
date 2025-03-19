@@ -37,6 +37,7 @@ export class FileUploadService {
   }
 
   uploadFile(file: File, taskId?: string): Observable<string> {
+    console.log('Starting file upload to Supabase:', file.name);
     const currentUser = this.authService.getCurrentUser();
     
     if (!currentUser) {
@@ -48,9 +49,12 @@ export class FileUploadService {
     const fileName = `${this.generateUniqueId()}.${fileExt}`;
     const filePath = `task-attachments/${currentUser.id}/${fileName}`;
     
+    console.log('Generated file path:', filePath);
+    
     // First check if we can read the file
     return from(this.readFileAsArrayBuffer(file)).pipe(
       switchMap(fileBuffer => {
+        console.log('File read successfully, uploading to Supabase Storage...');
         // Upload to Supabase Storage
         return from(this.supabaseService.supabaseClient.storage
           .from('files')
@@ -61,7 +65,9 @@ export class FileUploadService {
         );
       }),
       switchMap(response => {
+        console.log('Supabase upload response:', response);
         if (response.error) {
+          console.error('Upload error from Supabase:', response.error);
           this.notificationService.error(`Upload failed: ${response.error.message}`);
           return throwError(() => response.error);
         }
@@ -75,6 +81,8 @@ export class FileUploadService {
           user_id: currentUser.id,
           task_id: taskId || null
         };
+        
+        console.log('Creating file record in database:', fileData);
         
         return this.createFileRecord(fileData);
       }),

@@ -223,18 +223,18 @@ export class TaskFormComponent implements OnInit {
     const uploadedFile = this.uploadedFiles[fileIndex];
     if (!uploadedFile || uploadedFile.uploaded) return;
     
-    // Create a FormData object to handle the file upload
-    const formData = new FormData();
-    formData.append('file', uploadedFile.file);
+    console.log('Starting upload for file:', uploadedFile.name);
     
     // Use the FileUploadService with progress tracking
     this.fileUploadService.uploadFile(uploadedFile.file, taskId)
       .subscribe({
         next: (fileId) => {
+          console.log('Upload successful, fileId:', fileId);
+          
           // Update the file with the id from the server and mark as uploaded
           this.uploadedFiles[fileIndex].id = fileId;
           this.uploadedFiles[fileIndex].uploaded = true;
-          this.uploadedFiles[fileIndex].progress = 100;
+          this.uploadedFiles[fileIndex].progress = 100; // Set to 100% when complete
           
           // Get the URL for the uploaded file
           this.fileUploadService.getFilesByTaskId(taskId).subscribe(files => {
@@ -253,9 +253,6 @@ export class TaskFormComponent implements OnInit {
           this.uploadedFiles[fileIndex].progress = 0;
         }
       });
-    
-    // Simulate progress until we get the real progress
-    this.simulateFileUploadProgress(fileIndex);
   }
   
   // This simulates progress until real progress tracking is implemented

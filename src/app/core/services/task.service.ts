@@ -171,6 +171,10 @@ export class TaskService {
 
   // Helper methods to convert between camelCase (TypeScript) and snake_case (PostgreSQL)
   private formatTaskForDatabase(task: any): any {
+
+    const { attachments, ...taskWithoutAttachments } = task;
+
+    
     return {
       title: task.title,
       description: task.description,
