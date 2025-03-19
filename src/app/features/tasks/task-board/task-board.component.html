@@ -123,9 +123,17 @@
   <!-- Task Form Modal - Replace this in your task-board.component.html -->
   <div *ngIf="showTaskForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
     <app-task-form 
-    [task]="currentTask" 
-    (taskSaved)="onTaskSaved($event)" 
-    (closeForm)="closeTaskForm()">
-  </app-task-form>
+      [task]="currentTask" 
+      (taskSaved)="onTaskSaved($event)" 
+      (closeForm)="closeTaskForm()">
+    </app-task-form>
   </div>
+    <!-- Task Details Modal -->
+    <div *ngIf="showTaskDetails" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <app-task-details
+        [task]="selectedTask"
+        (close)="closeTaskDetails()"
+        (editTask)="editTaskFromDetails($event)">
+      </app-task-details>
+    </div>
 </div>
