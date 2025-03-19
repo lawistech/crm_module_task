@@ -7,11 +7,18 @@ import { TaskService } from '../../../core/services/task.service';
 import { TaskFormComponent } from '../task-form/task-form.component';
 import { TaskDetailsComponent } from '../task-details/task-details.component';
 import { NotificationService } from '../../../core/services/notification.service';
+import { FilterByStatusPipe } from '../../../shared/pipes/filter-by-status.pipe';
 
 @Component({
   selector: 'app-task-board',
   standalone: true,
-  imports: [CommonModule, FormsModule, TaskFormComponent, TaskDetailsComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    TaskFormComponent, 
+    TaskDetailsComponent,
+    FilterByStatusPipe
+  ],
   templateUrl: './task-board.component.html',
   styleUrls: ['./task-board.component.scss']
 })
@@ -74,7 +81,7 @@ export class TaskBoardComponent implements OnInit {
       return true;
     });
     
-    // Sort tasks by due date (closest first) and priority
+    // Sort tasks by priority first, then due date if available
     this.filteredTasks.sort((a, b) => {
       // First sort by priority (high -> medium -> low)
       const priorityOrder = { high: 0, medium: 1, low: 2 };

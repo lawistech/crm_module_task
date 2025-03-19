@@ -1,3 +1,4 @@
+<!-- src/app/features/tasks/task-board/task-board.component.html -->
 <div class="container mx-auto px-4 py-6">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-serif font-bold text-stone-800">Tasks</h1>
@@ -54,6 +55,37 @@
     </div>
   </div>
 
+  <!-- Active Filters Display -->
+  <div *ngIf="hasActiveFilters()" class="mb-4 flex flex-wrap gap-2">
+    <div *ngIf="statusFilter !== 'all'" class="inline-flex items-center px-3 py-1 bg-stone-200 text-stone-700 rounded-full text-sm">
+      Status: {{ getStatusDisplay(statusFilter) }}
+      <button (click)="clearStatusFilter()" class="ml-2 text-stone-500 hover:text-stone-700">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div *ngIf="priorityFilter !== 'all'" class="inline-flex items-center px-3 py-1 bg-stone-200 text-stone-700 rounded-full text-sm">
+      Priority: {{ priorityFilter | titlecase }}
+      <button (click)="clearPriorityFilter()" class="ml-2 text-stone-500 hover:text-stone-700">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div *ngIf="searchTerm" class="inline-flex items-center px-3 py-1 bg-stone-200 text-stone-700 rounded-full text-sm">
+      Search: "{{ searchTerm }}"
+      <button (click)="clearSearch()" class="ml-2 text-stone-500 hover:text-stone-700">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <button (click)="clearAllFilters()" class="text-stone-600 hover:text-stone-800 text-sm underline underline-offset-2">
+      Clear all filters
+    </button>
+  </div>
+
   <!-- Loading state -->
   <div *ngIf="isLoading" class="text-center py-16">
     <svg class="animate-spin h-10 w-10 mx-auto text-stone-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -63,16 +95,182 @@
     <p class="mt-3 text-stone-600">Loading tasks...</p>
   </div>
 
-  <!-- Task Grid -->
-  <div *ngIf="!isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && filteredTasks.length === 0" class="text-center py-16 bg-white rounded-lg shadow-sm">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-stone-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M6 16h.01" />
+    </svg>
+    <h3 class="text-lg font-medium text-stone-700 mb-2">No tasks found</h3>
+    <p class="text-stone-500 mb-6">
+      {{ hasActiveFilters() ? 'Try changing your filters or' : 'Get started by' }} creating a new task.
+    </p>
+    <button (click)="createTask()" class="bg-stone-800 hover:bg-stone-700 text-white px-4 py-2 rounded-md">
+      Create Task
+    </button>
+  </div>
+
+  <!-- Task Board (Kanban Style) when statusFilter is 'all' -->
+  <div *ngIf="!isLoading && filteredTasks.length > 0 && statusFilter === 'all'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- To Do Column -->
+    <div class="bg-stone-50 rounded-lg shadow-sm p-4">
+      <div class="flex items-center mb-4">
+        <div class="w-3 h-3 rounded-full bg-stone-400 mr-2"></div>
+        <h3 class="font-medium text-stone-700">To Do</h3>
+        <span class="ml-2 bg-stone-200 text-stone-600 text-xs px-2 py-0.5 rounded-full">
+          {{ filteredTasks.filter(t => t.status === 'todo').length }}
+        </span>
+      </div>
+      <div class="space-y-3">
+        <div *ngFor="let task of filteredTasks | filterByStatus:'todo'" 
+             class="bg-white rounded-lg shadow-sm border-l-4 border-stone-400 hover:shadow-md transition-shadow p-3">
+          <div class="flex justify-between mb-2">
+            <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getPriorityClass(task.priority)">
+              {{ task.priority | titlecase }}
+            </span>
+            <div *ngIf="isOverdue(task.dueDate)" class="text-xs text-rose-600 font-medium flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Overdue
+            </div>
+          </div>
+          
+          <h3 class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-stone-600" (click)="viewTaskDetails(task)">
+            {{ task.title }}
+          </h3>
+          
+          <div *ngIf="task.dueDate" class="flex items-center text-xs text-stone-500 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {{ task.dueDate | date:'MMM d' }}
+          </div>
+          
+          <div class="flex mt-3 pt-2 border-t border-stone-100 justify-end">
+            <button (click)="viewTaskDetails(task)" class="text-stone-500 hover:text-stone-700 text-xs">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- In Progress Column -->
+    <div class="bg-stone-50 rounded-lg shadow-sm p-4">
+      <div class="flex items-center mb-4">
+        <div class="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+        <h3 class="font-medium text-stone-700">In Progress</h3>
+        <span class="ml-2 bg-stone-200 text-stone-600 text-xs px-2 py-0.5 rounded-full">
+          {{ filteredTasks.filter(t => t.status === 'inProgress').length }}
+        </span>
+      </div>
+      <div class="space-y-3">
+        <div *ngFor="let task of filteredTasks | filterByStatus:'inProgress'" 
+             class="bg-white rounded-lg shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-shadow p-3">
+          <div class="flex justify-between mb-2">
+            <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getPriorityClass(task.priority)">
+              {{ task.priority | titlecase }}
+            </span>
+            <div *ngIf="isOverdue(task.dueDate)" class="text-xs text-rose-600 font-medium flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Overdue
+            </div>
+          </div>
+          
+          <h3 class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-stone-600" (click)="viewTaskDetails(task)">
+            {{ task.title }}
+          </h3>
+          
+          <div *ngIf="task.dueDate" class="flex items-center text-xs text-stone-500 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {{ task.dueDate | date:'MMM d' }}
+          </div>
+          
+          <div class="flex mt-3 pt-2 border-t border-stone-100 justify-end">
+            <button (click)="viewTaskDetails(task)" class="text-stone-500 hover:text-stone-700 text-xs">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Completed Column -->
+    <div class="bg-stone-50 rounded-lg shadow-sm p-4">
+      <div class="flex items-center mb-4">
+        <div class="w-3 h-3 rounded-full bg-emerald-500 mr-2"></div>
+        <h3 class="font-medium text-stone-700">Completed</h3>
+        <span class="ml-2 bg-stone-200 text-stone-600 text-xs px-2 py-0.5 rounded-full">
+          {{ filteredTasks.filter(t => t.status === 'completed').length }}
+        </span>
+      </div>
+      <div class="space-y-3">
+        <div *ngFor="let task of filteredTasks | filterByStatus:'completed'" 
+             class="bg-white rounded-lg shadow-sm border-l-4 border-emerald-500 hover:shadow-md transition-shadow p-3">
+          <div class="flex justify-between mb-2">
+            <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getPriorityClass(task.priority)">
+              {{ task.priority | titlecase }}
+            </span>
+            <div class="text-xs text-emerald-600 font-medium flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Done
+            </div>
+          </div>
+          
+          <h3 class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-stone-600" (click)="viewTaskDetails(task)">
+            {{ task.title }}
+          </h3>
+          
+          <div *ngIf="task.dueDate" class="flex items-center text-xs text-stone-500 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {{ task.dueDate | date:'MMM d' }}
+          </div>
+          
+          <div class="flex mt-3 pt-2 border-t border-stone-100 justify-end">
+            <button (click)="viewTaskDetails(task)" class="text-stone-500 hover:text-stone-700 text-xs">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Regular Task List (Grid) when filtering by status -->
+  <div *ngIf="!isLoading && filteredTasks.length > 0 && statusFilter !== 'all'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     <div *ngFor="let task of filteredTasks" 
-         class="bg-white rounded-lg shadow-sm border border-stone-200 overflow-hidden hover:shadow-md transition-shadow">
+         class="bg-white rounded-lg shadow-sm border-l-4 overflow-hidden hover:shadow-md transition-shadow"
+         [ngClass]="{
+            'border-stone-400': task.status === 'todo',
+            'border-blue-500': task.status === 'inProgress',
+            'border-emerald-500': task.status === 'completed'
+         }">
       <div class="p-4">
         <div class="flex justify-between mb-2">
           <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getPriorityClass(task.priority)">
             {{ task.priority | titlecase }}
           </span>
-          <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getStatusClass(task.status)">
+          <span [class]="'text-xs font-semibold px-2 py-1 rounded flex items-center ' + getStatusClass(task.status)">
+            <span *ngIf="task.status === 'todo'" class="w-2 h-2 bg-stone-500 rounded-full mr-1"></span>
+            <span *ngIf="task.status === 'inProgress'" class="w-2 h-2 bg-blue-500 rounded-full mr-1"></span>
+            <span *ngIf="task.status === 'completed'" class="w-2 h-2 bg-emerald-500 rounded-full mr-1"></span>
             {{ getStatusDisplay(task.status) }}
           </span>
         </div>
@@ -86,7 +284,12 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          Due: {{ task.dueDate | date:'mediumDate' }}
+          <span [ngClass]="{'text-rose-600': isOverdue(task.dueDate) && task.status !== 'completed'}">
+            Due: {{ task.dueDate | date:'mediumDate' }}
+            <span *ngIf="isOverdue(task.dueDate) && task.status !== 'completed'" class="ml-1 font-medium">
+              (Overdue)
+            </span>
+          </span>
         </div>
         
         <div *ngIf="task.tags && task.tags.length > 0" class="flex flex-wrap gap-1 mb-3">
