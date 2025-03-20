@@ -8,6 +8,12 @@ import { TaskFormComponent } from '../task-form/task-form.component';
 import { TaskDetailsComponent } from '../task-details/task-details.component';
 import { NotificationService } from '../../../core/services/notification.service';
 import { FilterByStatusPipe } from '../../../shared/pipes/filter-by-status.pipe';
+import { 
+  CdkDragDrop, 
+  DragDropModule, 
+  moveItemInArray, 
+  transferArrayItem 
+} from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-task-board',
@@ -17,7 +23,8 @@ import { FilterByStatusPipe } from '../../../shared/pipes/filter-by-status.pipe'
     FormsModule, 
     TaskFormComponent, 
     TaskDetailsComponent,
-    FilterByStatusPipe
+    FilterByStatusPipe,
+    DragDropModule
   ],
   templateUrl: './task-board.component.html',
   styleUrls: ['./task-board.component.scss']
@@ -25,11 +32,17 @@ import { FilterByStatusPipe } from '../../../shared/pipes/filter-by-status.pipe'
 export class TaskBoardComponent implements OnInit {
   tasks: Task[] = [];
   filteredTasks: Task[] = [];
+  todoTasks: Task[] = [];
+  inProgressTasks: Task[] = [];
+  completedTasks: Task[] = [];
   showTaskForm: boolean = false;
   showTaskDetails: boolean = false;
   currentTask: Task | null = null;
   selectedTask: Task | null = null;
   isLoading: boolean = true;
+  
+  // Drag states
+  isDragging: boolean = false;
   
   // Filters
   statusFilter: string = 'all';
@@ -51,6 +64,7 @@ export class TaskBoardComponent implements OnInit {
       next: (tasks) => {
         this.tasks = tasks;
         this.applyFilters();
+        this.updateStatusArrays();
         this.isLoading = false;
       },
       error: (error) => {
@@ -59,6 +73,16 @@ export class TaskBoardComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+  
+  // New method to update status-specific arrays for drag-drop functionality
+  updateStatusArrays(): void {
+    // Only populate these arrays when viewing the Kanban board
+    if (this.statusFilter === 'all') {
+      this.todoTasks = this.filteredTasks.filter(task => task.status === 'todo');
+      this.inProgressTasks = this.filteredTasks.filter(task => task.status === 'inProgress');
+      this.completedTasks = this.filteredTasks.filter(task => task.status === 'completed');
+    }
   }
 
   applyFilters(): void {
@@ -104,6 +128,85 @@ export class TaskBoardComponent implements OnInit {
       // Finally sort by creation date (newest first)
       return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
     });
+    
+    // Update status-specific arrays
+    this.updateStatusArrays();
+  }
+  
+  // New method to handle drag and drop between status columns
+  onDrop(event: CdkDragDrop<Task[]>) {
+    this.isDragging = false;
+    
+    if (event.previousContainer === event.container) {
+      // Reordering within the same list
+      moveItemInArray(
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex
+      );
+    } else {
+      // Moving to a different list (status change)
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex
+      );
+      
+      // Update the task's status based on the new container
+      const task = event.container.data[event.currentIndex];
+      let newStatus: 'todo' | 'inProgress' | 'completed';
+      
+      // Determine the new status based on the container id
+      switch (event.container.id) {
+        case 'todo-list':
+          newStatus = 'todo';
+          break;
+        case 'inProgress-list':
+          newStatus = 'inProgress';
+          break;
+        case 'completed-list':
+          newStatus = 'completed';
+          break;
+        default:
+          return; // Exit if the container ID doesn't match any status
+      }
+      
+      // Only update if the status actually changed
+      if (task.status !== newStatus) {
+        task.status = newStatus;
+        
+        // Save the updated task
+        this.updateTaskStatus(task);
+      }
+    }
+  }
+  
+  // Handle task status update
+  updateTaskStatus(task: Task): void {
+    this.taskService.updateTask(task).subscribe({
+      next: (updatedTask) => {
+        // Update the task in our list
+        this.tasks = this.tasks.map(t => t.id === updatedTask.id ? updatedTask : t);
+        this.notificationService.success(`Task moved to ${this.getStatusDisplay(updatedTask.status)}`);
+      },
+      error: (error) => {
+        // Handle error and revert the UI change
+        this.notificationService.error('Failed to update task status');
+        console.error(error);
+        // Reload tasks to revert UI changes
+        this.loadTasks();
+      }
+    });
+  }
+  
+  // Event handlers for drag states
+  onDragStarted() {
+    this.isDragging = true;
+  }
+  
+  onDragEnded() {
+    this.isDragging = false;
   }
   
   matchesSearch(task: Task): boolean {
@@ -119,6 +222,7 @@ export class TaskBoardComponent implements OnInit {
         next: () => {
           this.tasks = this.tasks.filter(task => task.id !== id);
           this.applyFilters();
+          this.updateStatusArrays();
           this.notificationService.success('Task deleted successfully');
         },
         error: (error) => {
@@ -170,6 +274,7 @@ export class TaskBoardComponent implements OnInit {
     }
     
     this.applyFilters();
+    this.updateStatusArrays();
     this.closeTaskForm();
   }
   
@@ -201,7 +306,6 @@ export class TaskBoardComponent implements OnInit {
     }
   }
   
-  // NEW METHOD: For styled status badges in the list view
   getStatusBadgeClass(status: string): string {
     switch (status) {
       case 'completed': return 'flex items-center text-xs font-semibold px-2 py-1 rounded bg-emerald-100 text-emerald-800';

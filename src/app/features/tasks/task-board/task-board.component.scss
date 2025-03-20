@@ -97,3 +97,50 @@
     background-color: rgba(0, 0, 0, 0.2);
   }
 }
+
+/* CDK Drag-Drop Styling */
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 0.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15) !important;
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging .cdk-drag:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+// Applies a visual indicator to the drop container when dragging over it
+.cdk-drop-list-dragging {
+  background-color: rgba(0, 0, 0, 0.02);
+  border: 2px dashed rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+}
+
+// Highlight the drop list when a draggable item is being dragged over it
+.cdk-drop-list-receiving {
+  background-color: rgba(0, 0, 0, 0.03);
+  border: 2px dashed rgba(0, 0, 0, 0.2);
+}
+
+// Custom handle styling
+.cdkDragHandle {
+  cursor: move;
+}
+
+// Add some style to the drag preview
+.cdk-drag-preview {
+  // Override for more specific styling
+  border-radius: 0.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
+  z-index: 9999;
+}

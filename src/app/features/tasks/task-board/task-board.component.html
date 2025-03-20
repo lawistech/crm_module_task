@@ -86,6 +86,15 @@
     </button>
   </div>
 
+  <!-- Drag instructions -->
+  <div *ngIf="statusFilter === 'all' && !isLoading && filteredTasks.length > 0" 
+       class="bg-stone-100 border border-stone-300 p-3 mb-6 rounded-md text-sm text-stone-600 flex items-center">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+    </svg>
+    Drag tasks between columns to update their status.
+  </div>
+
   <!-- Loading state -->
   <div *ngIf="isLoading" class="text-center py-16">
     <svg class="animate-spin h-10 w-10 mx-auto text-stone-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -109,9 +118,9 @@
     </button>
   </div>
 
-  <!-- Task Board (Kanban Style) when statusFilter is 'all' -->
+  <!-- Task Board (Kanban Style) with drag and drop enabled -->
   <div *ngIf="!isLoading && filteredTasks.length > 0 && statusFilter === 'all'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- To Do Column - Visually distinct styling -->
+    <!-- To Do Column -->
     <div class="bg-amber-50 rounded-lg shadow-sm p-4 border-2 border-amber-200">
       <div class="flex items-center mb-4">
         <div class="h-6 w-6 rounded-full flex items-center justify-center bg-amber-100 mr-2 text-amber-700 font-bold text-sm">
@@ -121,13 +130,26 @@
         </div>
         <h3 class="font-medium text-amber-800 text-lg">To Do</h3>
         <span class="ml-2 bg-amber-200 text-amber-800 text-xs px-2 py-0.5 rounded-full">
-          {{ getCountByStatus('todo') }}
+          {{ todoTasks.length }}
         </span>
       </div>
-      <div class="space-y-3">
-        <div *ngFor="let task of filteredTasks | filterByStatus:'todo'" 
-             class="bg-white rounded-lg shadow-sm border-l-4 border-amber-400 hover:shadow-md transition-shadow p-3">
-          <div class="flex justify-between mb-2">
+
+      <!-- Draggable task list -->
+      <div cdkDropList
+           id="todo-list"
+           [cdkDropListData]="todoTasks"
+           [cdkDropListConnectedTo]="['inProgress-list', 'completed-list']"
+           (cdkDropListDropped)="onDrop($event)"
+           class="min-h-[50px] space-y-3">
+        <div *ngFor="let task of todoTasks" 
+             cdkDrag
+             [cdkDragDisabled]="isDragging"
+             (cdkDragStarted)="onDragStarted()"
+             (cdkDragEnded)="onDragEnded()"
+             class="bg-white rounded-lg shadow-sm border-l-4 border-amber-400 hover:shadow-md transition-shadow p-3 cursor-move"
+             [class.shadow-md]="isDragging">
+          <!-- Drag handle -->
+          <div class="cdkDragHandle flex justify-between mb-2" cdkDragHandle>
             <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getPriorityClass(task.priority)">
               {{ task.priority | titlecase }}
             </span>
@@ -158,6 +180,16 @@
               </svg>
             </button>
           </div>
+          
+          <!-- Preview when dragging -->
+          <div *cdkDragPreview class="bg-white rounded-lg shadow-lg border-l-4 border-amber-400 p-3">
+            <div class="flex justify-between mb-2">
+              <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getPriorityClass(task.priority)">
+                {{ task.priority | titlecase }}
+              </span>
+            </div>
+            <h3 class="font-medium text-stone-800 mb-2">{{ task.title }}</h3>
+          </div>
         </div>
       </div>
     </div>
@@ -172,13 +204,26 @@
         </div>
         <h3 class="font-medium text-blue-800 text-lg">In Progress</h3>
         <span class="ml-2 bg-blue-200 text-blue-800 text-xs px-2 py-0.5 rounded-full">
-          {{ getCountByStatus('inProgress') }}
+          {{ inProgressTasks.length }}
         </span>
       </div>
-      <div class="space-y-3">
-        <div *ngFor="let task of filteredTasks | filterByStatus:'inProgress'" 
-             class="bg-white rounded-lg shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-shadow p-3">
-          <div class="flex justify-between mb-2">
+      
+      <!-- Draggable task list -->
+      <div cdkDropList
+           id="inProgress-list"
+           [cdkDropListData]="inProgressTasks"
+           [cdkDropListConnectedTo]="['todo-list', 'completed-list']"
+           (cdkDropListDropped)="onDrop($event)"
+           class="min-h-[50px] space-y-3">
+        <div *ngFor="let task of inProgressTasks" 
+             cdkDrag
+             [cdkDragDisabled]="isDragging"
+             (cdkDragStarted)="onDragStarted()"
+             (cdkDragEnded)="onDragEnded()"
+             class="bg-white rounded-lg shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-shadow p-3 cursor-move"
+             [class.shadow-md]="isDragging">
+          <!-- Drag handle -->
+          <div class="cdkDragHandle flex justify-between mb-2" cdkDragHandle>
             <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getPriorityClass(task.priority)">
               {{ task.priority | titlecase }}
             </span>
@@ -209,6 +254,16 @@
               </svg>
             </button>
           </div>
+          
+          <!-- Preview when dragging -->
+          <div *cdkDragPreview class="bg-white rounded-lg shadow-lg border-l-4 border-blue-500 p-3">
+            <div class="flex justify-between mb-2">
+              <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getPriorityClass(task.priority)">
+                {{ task.priority | titlecase }}
+              </span>
+            </div>
+            <h3 class="font-medium text-stone-800 mb-2">{{ task.title }}</h3>
+          </div>
         </div>
       </div>
     </div>
@@ -223,13 +278,26 @@
         </div>
         <h3 class="font-medium text-emerald-800 text-lg">Completed</h3>
         <span class="ml-2 bg-emerald-200 text-emerald-800 text-xs px-2 py-0.5 rounded-full">
-          {{ getCountByStatus('completed') }}
+          {{ completedTasks.length }}
         </span>
       </div>
-      <div class="space-y-3">
-        <div *ngFor="let task of filteredTasks | filterByStatus:'completed'" 
-             class="bg-white rounded-lg shadow-sm border-l-4 border-emerald-500 hover:shadow-md transition-shadow p-3">
-          <div class="flex justify-between mb-2">
+      
+      <!-- Draggable task list -->
+      <div cdkDropList
+           id="completed-list"
+           [cdkDropListData]="completedTasks"
+           [cdkDropListConnectedTo]="['todo-list', 'inProgress-list']"
+           (cdkDropListDropped)="onDrop($event)"
+           class="min-h-[50px] space-y-3">
+        <div *ngFor="let task of completedTasks" 
+             cdkDrag
+             [cdkDragDisabled]="isDragging"
+             (cdkDragStarted)="onDragStarted()"
+             (cdkDragEnded)="onDragEnded()"
+             class="bg-white rounded-lg shadow-sm border-l-4 border-emerald-500 hover:shadow-md transition-shadow p-3 cursor-move"
+             [class.shadow-md]="isDragging">
+          <!-- Drag handle -->
+          <div class="cdkDragHandle flex justify-between mb-2" cdkDragHandle>
             <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getPriorityClass(task.priority)">
               {{ task.priority | titlecase }}
             </span>
@@ -259,6 +327,16 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
             </button>
+          </div>
+          
+          <!-- Preview when dragging -->
+          <div *cdkDragPreview class="bg-white rounded-lg shadow-lg border-l-4 border-emerald-500 p-3">
+            <div class="flex justify-between mb-2">
+              <span [class]="'text-xs font-semibold px-2 py-1 rounded ' + getPriorityClass(task.priority)">
+                {{ task.priority | titlecase }}
+              </span>
+            </div>
+            <h3 class="font-medium text-stone-800 mb-2">{{ task.title }}</h3>
           </div>
         </div>
       </div>
