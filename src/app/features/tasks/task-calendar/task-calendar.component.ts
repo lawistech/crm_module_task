@@ -1,15 +1,14 @@
-// src/app/features/tasks/task-board/task-board.component.ts
-
-import { Component, OnInit } from "@angular/core";
+// src/app/features/tasks/task-calendar/task-calendar.component.ts
+import {
+  Component,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+  OnChanges,
+} from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormsModule } from "@angular/forms";
 import { Task } from "../../../core/models/task.model";
-import { TaskService } from "../../../core/services/task.service";
-import { TaskFormComponent } from "../task-form/task-form.component";
-import { TaskDetailsComponent } from "../task-details/task-details.component";
-import { TaskCalendarComponent } from "../task-calendar/task-calendar.component";
-import { NotificationService } from "../../../core/services/notification.service";
-import { FilterByStatusPipe } from "../../../shared/pipes/filter-by-status.pipe";
 
 interface CalendarDay {
   date: Date;
@@ -25,11 +24,11 @@ interface CalendarWeek {
 @Component({
   selector: "app-task-calendar",
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: "./task-calendar.component.html",
   styleUrls: ["./task-calendar.component.scss"],
 })
-export class TaskCalendarComponent implements OnInit {
+export class TaskCalendarComponent implements OnInit, OnChanges {
   @Input() tasks: Task[] = [];
   @Output() viewTask = new EventEmitter<Task>();
 
