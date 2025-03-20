@@ -1,0 +1,131 @@
+<!-- src/app/features/tasks/task-calendar/task-calendar.component.html -->
+<div class="bg-white rounded-lg shadow-sm overflow-hidden">
+  <!-- Calendar Header -->
+  <div
+    class="p-4 bg-stone-50 border-b border-stone-200 flex justify-between items-center"
+  >
+    <button (click)="previousMonth()" class="p-1 hover:bg-stone-200 rounded">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5 text-stone-600"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 19l-7-7 7-7"
+        />
+      </svg>
+    </button>
+
+    <div class="text-center">
+      <h2 class="text-lg font-medium text-stone-800">
+        {{ months[currentMonth] }} {{ currentYear }}
+      </h2>
+    </div>
+
+    <button (click)="nextMonth()" class="p-1 hover:bg-stone-200 rounded">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5 text-stone-600"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Today Button -->
+  <div class="p-2 bg-stone-50 border-b border-stone-200 flex justify-center">
+    <button
+      (click)="goToToday()"
+      class="text-xs text-stone-600 hover:text-stone-800 font-medium flex items-center p-1 px-2 hover:bg-stone-200 rounded-full"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-3 w-3 mr-1"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+        />
+      </svg>
+      Today
+    </button>
+  </div>
+
+  <!-- Weekday Headers -->
+  <div class="grid grid-cols-7 bg-stone-100 text-stone-600 text-xs font-medium">
+    <div *ngFor="let day of weekdays" class="py-2 text-center">{{ day }}</div>
+  </div>
+
+  <!-- Calendar Grid -->
+  <div class="bg-white">
+    <div
+      *ngFor="let week of calendar"
+      class="grid grid-cols-7 border-t border-stone-200"
+    >
+      <div
+        *ngFor="let day of week.days"
+        class="min-h-[90px] border-r border-stone-200 p-1 relative"
+        [ngClass]="{
+          'bg-stone-50': !day.isCurrentMonth,
+          'bg-white': day.isCurrentMonth,
+          'bg-blue-50': day.isToday
+        }"
+      >
+        <!-- Date number -->
+        <div
+          class="sticky top-0 z-10 text-right mb-1"
+          [ngClass]="{
+            'text-stone-400': !day.isCurrentMonth,
+            'text-stone-700': day.isCurrentMonth && !day.isToday,
+            'text-blue-800 font-medium': day.isToday
+          }"
+        >
+          {{ day.date.getDate() }}
+        </div>
+
+        <!-- Tasks for the day -->
+        <div class="space-y-1 overflow-y-auto max-h-[60px]">
+          <div
+            *ngFor="let task of day.tasks"
+            (click)="onTaskClick(task)"
+            class="text-xs p-1 rounded border truncate flex items-center cursor-pointer"
+            [ngClass]="getPriorityClass(task.priority)"
+          >
+            <span
+              [ngClass]="
+                'w-2 h-2 rounded-full mr-1 ' + getStatusClass(task.status)
+              "
+            ></span>
+            {{ task.title }}
+          </div>
+        </div>
+
+        <!-- Task count indicator if there are more tasks than can be displayed -->
+        <div
+          *ngIf="day.tasks.length > 2"
+          class="absolute bottom-1 right-1 text-xs text-stone-500"
+        >
+          +{{ day.tasks.length - 2 }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
