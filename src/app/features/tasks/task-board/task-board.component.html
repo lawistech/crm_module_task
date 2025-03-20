@@ -1,62 +1,22 @@
 <!-- src/app/features/tasks/task-board/task-board.component.html -->
 <div class="flex h-full">
-  <!-- Calendar Sidebar -->
-  <div *ngIf="showCalendar" class="w-1/3 p-4 border-r border-stone-200">
+  <!-- Calendar Sidebar - Always visible -->
+  <div class="w-1/3 p-4 border-r border-stone-200">
     <div class="mb-4 flex justify-between items-center">
       <h2 class="text-lg font-medium text-stone-800">Calendar View</h2>
-      <button
-        (click)="showCalendar = false"
-        class="text-stone-500 hover:text-stone-700 p-1 rounded-full"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
     </div>
     <app-task-calendar [tasks]="tasks" (viewTask)="viewTaskDetails($event)">
     </app-task-calendar>
   </div>
 
   <!-- Main Content -->
-  <div [class]="showCalendar ? 'w-2/3' : 'w-full'">
+  <div class="w-2/3">
     <div class="container mx-auto px-4 py-6">
       <div class="flex justify-between items-center mb-6">
         <div class="flex items-center">
           <h1 class="text-2xl font-serif font-bold text-stone-800 mr-4">
             Tasks
           </h1>
-          <button
-            *ngIf="!showCalendar"
-            (click)="showCalendar = true"
-            class="bg-stone-100 hover:bg-stone-200 text-stone-700 px-3 py-1 rounded-md flex items-center text-sm"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-4 w-4 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            Show Calendar
-          </button>
         </div>
         <button
           (click)="createTask()"
@@ -347,152 +307,56 @@
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="2"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  Overdue
+                  {{ task.dueDate | date : "MMM d" }}
                 </div>
-              </div>
 
-              <h3
-                class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-amber-700"
-                (click)="viewTaskDetails(task)"
-              >
-                {{ task.title }}
-              </h3>
-
-              <div
-                *ngIf="task.dueDate"
-                class="flex items-center text-xs text-stone-500 mb-2"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-3 w-3 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                {{ task.dueDate | date : "MMM d" }}
-              </div>
-
-              <div class="flex mt-3 pt-2 border-t border-stone-100 justify-end">
-                <button
-                  (click)="viewTaskDetails(task)"
-                  class="text-amber-600 hover:text-amber-800 bg-amber-50 rounded-full p-1"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- In Progress Column -->
-        <div
-          class="bg-blue-50 rounded-lg shadow-sm p-4 border-2 border-blue-200"
-        >
-          <div class="flex items-center mb-4">
-            <div
-              class="h-6 w-6 rounded-full flex items-center justify-center bg-blue-100 mr-2 text-blue-700 font-bold text-sm"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                />
-              </svg>
-            </div>
-            <h3 class="font-medium text-blue-800 text-lg">In Progress</h3>
-            <span
-              class="ml-2 bg-blue-200 text-blue-800 text-xs px-2 py-0.5 rounded-full"
-            >
-              {{ getCountByStatus("inProgress") }}
-            </span>
-          </div>
-          <div class="space-y-3">
-            <div
-              *ngFor="let task of filteredTasks | filterByStatus : 'inProgress'"
-              class="bg-white rounded-lg shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-shadow p-3"
-            >
-              <div class="flex justify-between mb-2">
-                <span
-                  [class]="
-                    'text-xs font-semibold px-2 py-1 rounded ' +
-                    getPriorityClass(task.priority)
-                  "
-                >
-                  {{ task.priority | titlecase }}
-                </span>
                 <div
-                  *ngIf="isOverdue(task.dueDate)"
-                  class="text-xs text-rose-600 font-medium flex items-center"
+                  class="flex mt-3 pt-2 border-t border-stone-100 justify-end"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3 w-3 mr-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                  <button
+                    (click)="viewTaskDetails(task)"
+                    class="text-amber-600 hover:text-amber-800 bg-amber-50 rounded-full p-1"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  Overdue
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  </button>
                 </div>
               </div>
+            </div>
+          </div>
 
-              <h3
-                class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-blue-700"
-                (click)="viewTaskDetails(task)"
-              >
-                {{ task.title }}
-              </h3>
-
+          <!-- In Progress Column -->
+          <div
+            class="bg-blue-50 rounded-lg shadow-sm p-4 border-2 border-blue-200"
+          >
+            <div class="flex items-center mb-4">
               <div
-                *ngIf="task.dueDate"
-                class="flex items-center text-xs text-stone-500 mb-2"
+                class="h-6 w-6 rounded-full flex items-center justify-center bg-blue-100 mr-2 text-blue-700 font-bold text-sm"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="h-3 w-3 mr-1"
+                  class="h-4 w-4"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -501,271 +365,296 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
                   />
                 </svg>
-                {{ task.dueDate | date : "MMM d" }}
               </div>
-
-              <div class="flex mt-3 pt-2 border-t border-stone-100 justify-end">
-                <button
-                  (click)="viewTaskDetails(task)"
-                  class="text-blue-600 hover:text-blue-800 bg-blue-50 rounded-full p-1"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Completed Column -->
-        <div
-          class="bg-emerald-50 rounded-lg shadow-sm p-4 border-2 border-emerald-200"
-        >
-          <div class="flex items-center mb-4">
-            <div
-              class="h-6 w-6 rounded-full flex items-center justify-center bg-emerald-100 mr-2 text-emerald-700 font-bold text-sm"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-            <h3 class="font-medium text-emerald-800 text-lg">Completed</h3>
-            <span
-              class="ml-2 bg-emerald-200 text-emerald-800 text-xs px-2 py-0.5 rounded-full"
-            >
-              {{ getCountByStatus("completed") }}
-            </span>
-          </div>
-          <div class="space-y-3">
-            <div
-              *ngFor="let task of filteredTasks | filterByStatus : 'completed'"
-              class="bg-white rounded-lg shadow-sm border-l-4 border-emerald-500 hover:shadow-md transition-shadow p-3"
-            >
-              <div class="flex justify-between mb-2">
-                <span
-                  [class]="
-                    'text-xs font-semibold px-2 py-1 rounded ' +
-                    getPriorityClass(task.priority)
-                  "
-                >
-                  {{ task.priority | titlecase }}
-                </span>
-                <div
-                  class="text-xs text-emerald-600 font-medium flex items-center"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-3 w-3 mr-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  Done
-                </div>
-              </div>
-
-              <h3
-                class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-emerald-700"
-                (click)="viewTaskDetails(task)"
-              >
-                {{ task.title }}
-              </h3>
-
-              <div
-                *ngIf="task.dueDate"
-                class="flex items-center text-xs text-stone-500 mb-2"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-3 w-3 mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                {{ task.dueDate | date : "MMM d" }}
-              </div>
-
-              <div class="flex mt-3 pt-2 border-t border-stone-100 justify-end">
-                <button
-                  (click)="viewTaskDetails(task)"
-                  class="text-emerald-600 hover:text-emerald-800 bg-emerald-50 rounded-full p-1"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Regular Task List (Grid) when filtering by status -->
-      <div
-        *ngIf="!isLoading && filteredTasks.length > 0 && statusFilter !== 'all'"
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-      >
-        <div
-          *ngFor="let task of filteredTasks"
-          class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow"
-          [ngClass]="{
-            'border-l-8 border-amber-400': task.status === 'todo',
-            'border-l-8 border-blue-500': task.status === 'inProgress',
-            'border-l-8 border-emerald-500': task.status === 'completed'
-          }"
-        >
-          <div class="p-4">
-            <div class="flex justify-between mb-2">
+              <h3 class="font-medium text-blue-800 text-lg">In Progress</h3>
               <span
-                [class]="
-                  'text-xs font-semibold px-2 py-1 rounded ' +
-                  getPriorityClass(task.priority)
+                class="ml-2 bg-blue-200 text-blue-800 text-xs px-2 py-0.5 rounded-full"
+              >
+                {{ getCountByStatus("inProgress") }}
+              </span>
+            </div>
+            <div class="space-y-3">
+              <div
+                *ngFor="
+                  let task of filteredTasks | filterByStatus : 'inProgress'
                 "
+                class="bg-white rounded-lg shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-shadow p-3"
               >
-                {{ task.priority | titlecase }}
-              </span>
-              <span [class]="getStatusBadgeClass(task.status)">
-                {{ getStatusDisplay(task.status) }}
+                <div class="flex justify-between mb-2">
+                  <span
+                    [class]="
+                      'text-xs font-semibold px-2 py-1 rounded ' +
+                      getPriorityClass(task.priority)
+                    "
+                  >
+                    {{ task.priority | titlecase }}
+                  </span>
+                  <div
+                    *ngIf="isOverdue(task.dueDate)"
+                    class="text-xs text-rose-600 font-medium flex items-center"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    Overdue
+                  </div>
+                </div>
+
+                <h3
+                  class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-blue-700"
+                  (click)="viewTaskDetails(task)"
+                >
+                  {{ task.title }}
+                </h3>
+
+                <div
+                  *ngIf="task.dueDate"
+                  class="flex items-center text-xs text-stone-500 mb-2"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-3 w-3 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  {{ task.dueDate | date : "MMM d" }}
+                </div>
+
+                <div
+                  class="flex mt-3 pt-2 border-t border-stone-100 justify-end"
+                >
+                  <button
+                    (click)="viewTaskDetails(task)"
+                    class="text-blue-600 hover:text-blue-800 bg-blue-50 rounded-full p-1"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Completed Column -->
+          <div
+            class="bg-emerald-50 rounded-lg shadow-sm p-4 border-2 border-emerald-200"
+          >
+            <div class="flex items-center mb-4">
+              <div
+                class="h-6 w-6 rounded-full flex items-center justify-center bg-emerald-100 mr-2 text-emerald-700 font-bold text-sm"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h3 class="font-medium text-emerald-800 text-lg">Completed</h3>
+              <span
+                class="ml-2 bg-emerald-200 text-emerald-800 text-xs px-2 py-0.5 rounded-full"
+              >
+                {{ getCountByStatus("completed") }}
               </span>
             </div>
-
-            <h3
-              class="font-medium text-lg mb-2 cursor-pointer hover:text-stone-600"
-              (click)="viewTaskDetails(task)"
-            >
-              {{ task.title }}
-            </h3>
-            <p
-              *ngIf="task.description"
-              class="text-stone-600 text-sm mb-3 line-clamp-2"
-            >
-              {{ task.description }}
-            </p>
-
-            <div
-              *ngIf="task.dueDate"
-              class="flex items-center text-sm text-stone-500 mb-2"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4 mr-1"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+            <div class="space-y-3">
+              <div
+                *ngFor="
+                  let task of filteredTasks | filterByStatus : 'completed'
+                "
+                class="bg-white rounded-lg shadow-sm border-l-4 border-emerald-500 hover:shadow-md transition-shadow p-3"
               >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <span
-                [ngClass]="{
-                  'text-rose-600':
-                    isOverdue(task.dueDate) && task.status !== 'completed'
-                }"
-              >
-                Due: {{ task.dueDate | date : "mediumDate" }}
+                <div class="flex justify-between mb-2">
+                  <span
+                    [class]="
+                      'text-xs font-semibold px-2 py-1 rounded ' +
+                      getPriorityClass(task.priority)
+                    "
+                  >
+                    {{ task.priority | titlecase }}
+                  </span>
+                  <div
+                    class="text-xs text-emerald-600 font-medium flex items-center"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3 w-3 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Done
+                  </div>
+                </div>
+
+                <h3
+                  class="font-medium text-stone-800 mb-2 cursor-pointer hover:text-emerald-700"
+                  (click)="viewTaskDetails(task)"
+                >
+                  {{ task.title }}
+                </h3>
+
+                <div
+                  *ngIf="task.dueDate"
+                  class="flex items-center text-xs text-stone-500 mb-2"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-3 w-3 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  {{ task.dueDate | date : "MMM d" }}
+                </div>
+
+                <div
+                  class="flex mt-3 pt-2 border-t border-stone-100 justify-end"
+                >
+                  <button
+                    (click)="viewTaskDetails(task)"
+                    class="text-emerald-600 hover:text-emerald-800 bg-emerald-50 rounded-full p-1"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Regular Task List (Grid) when filtering by status -->
+        <div
+          *ngIf="
+            !isLoading && filteredTasks.length > 0 && statusFilter !== 'all'
+          "
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+        >
+          <div
+            *ngFor="let task of filteredTasks"
+            class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+            [ngClass]="{
+              'border-l-8 border-amber-400': task.status === 'todo',
+              'border-l-8 border-blue-500': task.status === 'inProgress',
+              'border-l-8 border-emerald-500': task.status === 'completed'
+            }"
+          >
+            <div class="p-4">
+              <div class="flex justify-between mb-2">
                 <span
-                  *ngIf="isOverdue(task.dueDate) && task.status !== 'completed'"
-                  class="ml-1 font-medium"
+                  [class]="
+                    'text-xs font-semibold px-2 py-1 rounded ' +
+                    getPriorityClass(task.priority)
+                  "
                 >
-                  (Overdue)
+                  {{ task.priority | titlecase }}
                 </span>
-              </span>
-            </div>
+                <span [class]="getStatusBadgeClass(task.status)">
+                  {{ getStatusDisplay(task.status) }}
+                </span>
+              </div>
 
-            <div
-              *ngIf="task.tags && task.tags.length > 0"
-              class="flex flex-wrap gap-1 mb-3"
-            >
-              <span
-                *ngFor="let tag of task.tags"
-                class="bg-stone-100 text-stone-600 text-xs px-2 py-1 rounded"
-              >
-                {{ tag }}
-              </span>
-            </div>
-
-            <div class="flex mt-4 pt-3 border-t border-stone-100">
-              <button
+              <h3
+                class="font-medium text-lg mb-2 cursor-pointer hover:text-stone-600"
                 (click)="viewTaskDetails(task)"
-                [ngClass]="{
-                  'text-amber-600 hover:text-amber-800': task.status === 'todo',
-                  'text-blue-600 hover:text-blue-800':
-                    task.status === 'inProgress',
-                  'text-emerald-600 hover:text-emerald-800':
-                    task.status === 'completed'
-                }"
-                class="text-sm mr-4"
+              >
+                {{ task.title }}
+              </h3>
+              <p
+                *ngIf="task.description"
+                class="text-stone-600 text-sm mb-3 line-clamp-2"
+              >
+                {{ task.description }}
+              </p>
+
+              <div
+                *ngIf="task.dueDate"
+                class="flex items-center text-sm text-stone-500 mb-2"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4 inline mr-1"
+                  class="h-4 w-4 mr-1"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -774,87 +663,145 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                View
-              </button>
-              <button
-                (click)="editTask(task)"
-                class="text-stone-600 hover:text-stone-800 text-sm mr-4"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4 inline mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+                <span
+                  [ngClass]="{
+                    'text-rose-600':
+                      isOverdue(task.dueDate) && task.status !== 'completed'
+                  }"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
-                Edit
-              </button>
-              <button
-                (click)="deleteTask(task.id)"
-                class="text-red-600 hover:text-red-800 text-sm"
+                  Due: {{ task.dueDate | date : "mediumDate" }}
+                  <span
+                    *ngIf="
+                      isOverdue(task.dueDate) && task.status !== 'completed'
+                    "
+                    class="ml-1 font-medium"
+                  >
+                    (Overdue)
+                  </span>
+                </span>
+              </div>
+
+              <div
+                *ngIf="task.tags && task.tags.length > 0"
+                class="flex flex-wrap gap-1 mb-3"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-4 w-4 inline mr-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+                <span
+                  *ngFor="let tag of task.tags"
+                  class="bg-stone-100 text-stone-600 text-xs px-2 py-1 rounded"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-                Delete
-              </button>
+                  {{ tag }}
+                </span>
+              </div>
+
+              <div class="flex mt-4 pt-3 border-t border-stone-100">
+                <button
+                  (click)="viewTaskDetails(task)"
+                  [ngClass]="{
+                    'text-amber-600 hover:text-amber-800':
+                      task.status === 'todo',
+                    'text-blue-600 hover:text-blue-800':
+                      task.status === 'inProgress',
+                    'text-emerald-600 hover:text-emerald-800':
+                      task.status === 'completed'
+                  }"
+                  class="text-sm mr-4"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 inline mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                  View
+                </button>
+                <button
+                  (click)="editTask(task)"
+                  class="text-stone-600 hover:text-stone-800 text-sm mr-4"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 inline mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  Edit
+                </button>
+                <button
+                  (click)="deleteTask(task.id)"
+                  class="text-red-600 hover:text-red-800 text-sm"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4 inline mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Task Form Modal -->
-<div
-  *ngIf="showTaskForm"
-  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
->
-  <app-task-form
-    [task]="currentTask"
-    (taskSaved)="onTaskSaved($event)"
-    (closeForm)="closeTaskForm()"
+  <!-- Task Form Modal -->
+  <div
+    *ngIf="showTaskForm"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
   >
-  </app-task-form>
-</div>
+    <app-task-form
+      [task]="currentTask"
+      (taskSaved)="onTaskSaved($event)"
+      (closeForm)="closeTaskForm()"
+    >
+    </app-task-form>
+  </div>
 
-<!-- Task Details Modal -->
-<div
-  *ngIf="showTaskDetails"
-  class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
->
-  <app-task-details
-    [task]="selectedTask"
-    (close)="closeTaskDetails()"
-    (editTask)="editTaskFromDetails($event)"
+  <!-- Task Details Modal -->
+  <div
+    *ngIf="showTaskDetails"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
   >
-  </app-task-details>
+    <app-task-details
+      [task]="selectedTask"
+      (close)="closeTaskDetails()"
+      (editTask)="editTaskFromDetails($event)"
+    >
+    </app-task-details>
+  </div>
 </div>

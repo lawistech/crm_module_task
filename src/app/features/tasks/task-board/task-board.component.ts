@@ -39,7 +39,7 @@ export class TaskBoardComponent implements OnInit {
   completedTasks: Task[] = [];
   showTaskForm: boolean = false;
   showTaskDetails: boolean = false;
-  showCalendar: boolean = false; // Added the missing property
+  showCalendar: boolean = true; // Changed to true by default
   currentTask: Task | null = null;
   selectedTask: Task | null = null;
   isLoading: boolean = true;
@@ -60,9 +60,6 @@ export class TaskBoardComponent implements OnInit {
   ngOnInit(): void {
     this.loadTasks();
   }
-
-  // Rest of the component implementation (unchanged)
-  // ...
 
   loadTasks(): void {
     this.isLoading = true;

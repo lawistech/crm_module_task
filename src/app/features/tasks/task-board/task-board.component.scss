@@ -1,146 +1,121 @@
-/* src/app/features/tasks/task-board/task-board.component.scss */
+/* src/app/features/tasks/task-calendar/task-calendar.component.scss */
 
-// Enhanced animations and transitions
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+:host {
+  display: block;
+  height: 100%;
 }
 
-// Task card hover effects
-.task-card {
+// Transitions and animations
+.calendar-enter {
   transition: all 0.3s ease;
-  
+}
+
+// Custom calendar day styling
+.calendar-day {
+  transition: all 0.2s ease;
+
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.07);
+    background-color: #f8fafc;
+  }
+
+  &.today {
+    background-color: #eff6ff;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: #3b82f6;
+    }
+  }
+
+  &.past-date {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+
+    // Subtle striped pattern for past dates
+    background-image: linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.02) 25%,
+      transparent 25%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.02) 50%,
+      rgba(0, 0, 0, 0.02) 75%,
+      transparent 75%,
+      transparent
+    );
+    background-size: 8px 8px;
+  }
+
+  &.different-month {
+    background-color: #f8fafc;
+    color: #94a3b8;
   }
 }
 
-// Status column styles
-.status-column {
-  position: relative;
-  
-  &.todo-column {
-    border-top: 3px solid #fbbf24; // amber-400
-  }
-  
-  &.in-progress-column {
-    border-top: 3px solid #3b82f6; // blue-500
-  }
-  
-  &.completed-column {
-    border-top: 3px solid #10b981; // emerald-500
-  }
-}
+// Task items within calendar
+.calendar-task {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 
-// Status badge styles
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 9999px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  
-  &.todo {
-    background-color: rgba(251, 191, 36, 0.2);
-    color: #92400e;
-  }
-  
-  &.in-progress {
-    background-color: rgba(59, 130, 246, 0.2);
-    color: #1e40af;
-  }
-  
-  &.completed {
-    background-color: rgba(16, 185, 129, 0.2);
-    color: #065f46;
-  }
-}
-
-// Enhanced task card shadows
-.task-shadow {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
-  
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
 }
 
-// Scrollbar styling for columns
-.task-column {
-  max-height: calc(100vh - 220px);
-  overflow-y: auto;
-  
+// Scrollbar styling for task overflow
+.task-container {
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background-color: rgba(0, 0, 0, 0.1);
     border-radius: 20px;
-    border: transparent;
-  }
-  
-  &::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.2);
   }
 }
 
-/* CDK Drag-Drop Styling */
-.cdk-drag-preview {
-  box-sizing: border-box;
-  border-radius: 0.5rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15) !important;
-  opacity: 0.9;
-  transform: scale(1.02);
+// Calendar navigation buttons
+.nav-button {
+  transition: all 0.2s ease;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: #e2e8f0;
+  }
+
+  &:active {
+    background-color: #cbd5e1;
+  }
 }
 
-.cdk-drag-placeholder {
-  opacity: 0.3;
+// Month title animation
+.month-title {
+  transition: all 0.3s ease;
 }
 
-.cdk-drag-animating {
-  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+// Task priority indicators
+.priority-high {
+  border-left: 3px solid #ef4444;
 }
 
-.cdk-drop-list-dragging .cdk-drag:not(.cdk-drag-placeholder) {
-  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+.priority-medium {
+  border-left: 3px solid #f59e0b;
 }
 
-// Applies a visual indicator to the drop container when dragging over it
-.cdk-drop-list-dragging {
-  background-color: rgba(0, 0, 0, 0.02);
-  border: 2px dashed rgba(0, 0, 0, 0.1);
-  border-radius: 0.5rem;
-}
-
-// Highlight the drop list when a draggable item is being dragged over it
-.cdk-drop-list-receiving {
-  background-color: rgba(0, 0, 0, 0.03);
-  border: 2px dashed rgba(0, 0, 0, 0.2);
-}
-
-// Custom handle styling
-.cdkDragHandle {
-  cursor: move;
-}
-
-// Add some style to the drag preview
-.cdk-drag-preview {
-  // Override for more specific styling
-  border-radius: 0.5rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2) !important;
-  z-index: 9999;
+.priority-low {
+  border-left: 3px solid #10b981;
 }
