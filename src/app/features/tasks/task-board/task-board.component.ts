@@ -26,7 +26,7 @@ import {
     TaskDetailsComponent,
     TaskCalendarComponent,
     FilterByStatusPipe,
-    DragDropModule,
+    DragDropModule, // Make sure this import is included
   ],
   templateUrl: "./task-board.component.html",
   styleUrls: ["./task-board.component.scss"],
@@ -39,7 +39,7 @@ export class TaskBoardComponent implements OnInit {
   completedTasks: Task[] = [];
   showTaskForm: boolean = false;
   showTaskDetails: boolean = false;
-  showCalendar: boolean = true; // Changed to true by default
+  showCalendar: boolean = true;
   currentTask: Task | null = null;
   selectedTask: Task | null = null;
   isLoading: boolean = true;
@@ -78,7 +78,7 @@ export class TaskBoardComponent implements OnInit {
     });
   }
 
-  // New method to update status-specific arrays for drag-drop functionality
+  // Update status-specific arrays for drag-drop functionality
   updateStatusArrays(): void {
     // Only populate these arrays when viewing the Kanban board
     if (this.statusFilter === "all") {
@@ -148,7 +148,7 @@ export class TaskBoardComponent implements OnInit {
     this.updateStatusArrays();
   }
 
-  // New method to handle drag and drop between status columns
+  // Handle drag and drop between status columns
   onDrop(event: CdkDragDrop<Task[]>) {
     this.isDragging = false;
 
@@ -302,7 +302,7 @@ export class TaskBoardComponent implements OnInit {
     this.updateStatusArrays();
     this.closeTaskForm();
   }
-
+  
   // Helper methods for class names
   getPriorityBarClass(priority: string): string {
     switch (priority) {
@@ -407,6 +407,6 @@ export class TaskBoardComponent implements OnInit {
 
   // Helper method to safely count tasks by status
   getCountByStatus(status: string): number {
-    return this.filteredTasks.filter((task) => task.status === status).length;
+    return this.tasks.filter((task) => task.status === status).length;
   }
 }

@@ -1,11 +1,54 @@
-/* src/app/features/tasks/task-calendar/task-calendar.component.scss */
+/* src/app/features/tasks/task-board/task-board.component.scss */
 
 :host {
   display: block;
   height: 100%;
 }
 
-// Transitions and animations
+// Drag and drop styles
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 0.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  opacity: 0.8;
+  background-color: white;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.4;
+  border: 2px dashed #ccc;
+  border-radius: 0.5rem;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging .cdk-drag {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging .cdk-drag:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+// Task animations
+.task-enter {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Calendar transitions
 .calendar-enter {
   transition: all 0.3s ease;
 }
@@ -57,54 +100,28 @@
   }
 }
 
-// Task items within calendar
-.calendar-task {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+// Task board columns
+.task-column {
+  min-height: 200px;
+  transition: background-color 0.2s ease;
 
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  &.cdk-drop-list-dragging {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+  
+  &.cdk-drop-list-receiving {
+    background-color: rgba(0, 0, 0, 0.04);
   }
 }
 
-// Scrollbar styling for task overflow
-.task-container {
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 20px;
-  }
-}
-
-// Calendar navigation buttons
-.nav-button {
-  transition: all 0.2s ease;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    background-color: #e2e8f0;
-  }
-
+// Task items 
+[cdkDrag] {
+  cursor: move; /* fallback if grab cursor is unsupported */
+  cursor: grab;
+  
   &:active {
-    background-color: #cbd5e1;
+    cursor: grabbing;
   }
-}
-
-// Month title animation
-.month-title {
-  transition: all 0.3s ease;
 }
 
 // Task priority indicators
@@ -118,4 +135,19 @@
 
 .priority-low {
   border-left: 3px solid #10b981;
+}
+
+// Drag handles (optional)
+.drag-handle {
+  cursor: move;
+  cursor: grab;
+  color: #d1d5db;
+  
+  &:hover {
+    color: #9ca3af;
+  }
+  
+  &:active {
+    cursor: grabbing;
+  }
 }
